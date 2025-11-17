@@ -56,7 +56,7 @@
                 <x-murid-nav-item route="murid.grades.index" icon='<i class="fa-solid fa-award"></i>'>Nilai</x-murid-nav-item>
             </nav>
             <div class="p-4 border-t border-emerald-500/50 text-sm text-emerald-100 flex-shrink-0 flex items-center gap-3">
-                <img src="{{ auth()->user()->photo_path ? Storage::disk('public')->url(auth()->user()->photo_path) : asset('img/logo.png') }}" alt="Foto Mahasiswa" class="h-9 w-9 rounded-full bg-white object-cover">
+                <img src="{{ auth()->user()->profile_photo_url }}" alt="Foto Mahasiswa" class="h-9 w-9 rounded-full bg-white object-cover">
                 <div>
                     <p class="font-semibold">{{ auth()->user()->name }}</p>
                     <p>Mahasiswa</p>
