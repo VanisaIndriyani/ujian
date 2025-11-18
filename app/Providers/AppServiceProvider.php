@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +27,12 @@ class AppServiceProvider extends ServiceProvider
         // helper route()/asset menghasilkan URL yang benar di hosting.
         if (!app()->runningInConsole()) {
             $base = rtrim(request()->getSchemeAndHttpHost() . request()->getBaseUrl(), '/');
+
+            // Jika hosting menghasilkan base seperti "/ujian/public",
+            // hapus "/public" agar cookie sesi dan URL konsisten.
+            if (Str::endsWith($base, '/public')) {
+                $base = rtrim(Str::replaceLast('/public', '', $base), '/');
+            }
             if (!empty($base)) {
                 URL::forceRootUrl($base);
             }
