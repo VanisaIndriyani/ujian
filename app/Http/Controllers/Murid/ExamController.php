@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Murid;
 use App\Http\Controllers\Controller;
 use App\Models\Exam;
 use App\Models\ExamResult;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\IOFactory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -169,6 +171,91 @@ class ExamController extends Controller
         );
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Heartbeat ujian: menandai sesi aktif dan mencatat pelanggaran/remaining time.
+     * Disimpan di ExamResult sebagai status "in_progress" dan catatan singkat.
+     */
+    public function heartbeat(Request $request, Exam $exam)
+    {
+        $murid = Auth::user();
+
+        // Validasi akses murid ke ujian
+        $enrolled = $murid->subjects()->where('subjects.id', $exam->subject_id)->exists();
+        $classAllowed = !is_null($exam->classroom) && $exam->classroom === $murid->classroom;
+        abort_if(!($enrolled || $classAllowed), 403);
+
+        $data = $request->validate([
+            'violations' => 'nullable|integer|min:0',
+            'remaining_ms' => 'nullable|integer|min:0',
+        ]);
+
+        $notes = sprintf(
+            'Heartbeat: violations=%d, remaining_ms=%d, at=%s',
+            (int) ($data['violations'] ?? 0),
+            (int) ($data['remaining_ms'] ?? 0),
+            now()->toDateTimeString()
+        );
+
+        ExamResult::updateOrCreate(
+            [
+                'exam_id' => $exam->id,
+                'student_id' => $murid->id,
+            ],
+            [
+                'status' => 'in_progress',
+                'notes' => $notes,
+            ]
+        );
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Ekspor jawaban teks menjadi file DOCX untuk diunduh murid.
+     * Jika `answer_text` tidak dikirim, akan memakai jawaban yang tersimpan pada ExamResult.
+     */
+    public function exportDocx(Request $request, Exam $exam)
+    {
+        $murid = Auth::user();
+        $enrolled = $murid->subjects()->where('subjects.id', $exam->subject_id)->exists();
+        $classAllowed = !is_null($exam->classroom) && $exam->classroom === $murid->classroom;
+        abort_if(!($enrolled || $classAllowed), 403);
+
+        $validated = $request->validate([
+            'answer_text' => 'nullable|string|min:1',
+        ]);
+
+        $result = ExamResult::where('exam_id', $exam->id)
+            ->where('student_id', $murid->id)
+            ->first();
+
+        $answerText = $validated['answer_text'] ?? ($result->answer_text ?? '');
+        if (trim($answerText) === '') {
+            return redirect()->back()->with('error', 'Tidak ada jawaban untuk diekspor.');
+        }
+
+        $phpWord = new PhpWord();
+        $section = $phpWord->addSection();
+        $section->addText('Jawaban Ujian', [
+            'bold' => true,
+            'size' => 14,
+        ]);
+        $section->addText(sprintf('Matakuliah: %s', $exam->subject?->name ?? '-'));
+        $section->addText(sprintf('Ujian: %s', $exam->title));
+        $section->addTextBreak(1);
+        $section->addText($answerText, ['size' => 12]);
+
+        $fileName = 'Jawaban_' . ($exam->title ? preg_replace('/[^A-Za-z0-9_\-]/', '_', $exam->title) : 'Ujian') . '_' . now()->format('Ymd_His') . '.docx';
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'docx');
+        $writer = IOFactory::createWriter($phpWord, 'Word2007');
+        $writer->save($tempFile);
+
+        return response()->download($tempFile, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ])->deleteFileAfterSend(true);
     }
 }
 

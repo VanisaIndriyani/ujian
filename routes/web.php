@@ -87,7 +87,9 @@ Route::middleware(['auth', 'role:murid'])->prefix('murid')->name('murid.')->grou
     Route::resource('exams', MuridExamController::class)->only(['index', 'show', 'store']);
     Route::post('exams/{exam}/submit-file', [MuridExamController::class, 'submitFile'])->name('exams.submit_file');
     Route::post('exams/{exam}/submit-text', [MuridExamController::class, 'submitText'])->name('exams.submit_text');
+    Route::post('exams/{exam}/heartbeat', [MuridExamController::class, 'heartbeat'])->name('exams.heartbeat');
     Route::post('exams/{exam}/auto-finish', [MuridExamController::class, 'autoFinish'])->name('exams.auto_finish');
+    Route::post('exams/{exam}/export-docx', [MuridExamController::class, 'exportDocx'])->name('exams.export_docx');
     Route::get('attendances', [MuridAttendanceController::class, 'index'])->name('attendances.index');
     Route::get('grades', [MuridGradeController::class, 'index'])->name('grades.index');
 });

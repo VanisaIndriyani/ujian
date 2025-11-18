@@ -75,14 +75,14 @@
                             <p class="text-sm text-emerald-700">Berkas Word terlampir.</p>
                             <p class="text-xs text-emerald-500 mt-2">Mode editor web akan menampilkan isi DOCX di halaman ini, meminta layar penuh, dan otomatis mengakhiri ujian jika Anda berpindah aplikasi/tab.</p>
 
-                            <div class="mt-3 space-x-2">
+                            <div class="mt-3">
                                 <button id="btn-start-docx" type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs hover:bg-emerald-700">Mulai Ujian (Dokumen)</button>
-                                <a href="{{ $url }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500 text-white text-xs hover:bg-emerald-600">(Cadangan) Unduh DOCX</a>
                             </div>
 
                             <div id="docx-wrapper" class="hidden mt-4 border border-emerald-100 rounded-xl overflow-hidden">
                                 <div class="flex items-center justify-between px-3 py-2 bg-emerald-50 border-b border-emerald-100 text-xs text-emerald-600">
                                     <span>Mode Ujian Dokumen Aktif • Tetap di halaman ini sampai selesai.</span>
+                                    <button id="btn-exit-docx" type="button" class="px-2 py-1 rounded-md bg-emerald-600 text-white">Selesai</button>
                                 </div>
                                 <div class="grid lg:grid-cols-2 gap-0">
                                     <div class="p-4 bg-white max-h-[70vh] overflow-auto">
@@ -119,6 +119,16 @@
                     </div>
                     <iframe id="exam-frame" src="" class="w-full h-[78vh] bg-white" allow="fullscreen" referrerpolicy="no-referrer"></iframe>
                 </div>
+
+                <!-- Panel jawaban CAT (opsional) -->
+                <div id="cat-answer-panel" class="hidden mt-3 border border-emerald-100 rounded-xl p-4 bg-emerald-50">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-emerald-700">Catatan/Jawaban (opsional). Teks di sini dapat diunduh sebagai DOCX.</p>
+                        <button id="btn-export-cat-docx" type="button" class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs hover:bg-emerald-700">Unduh Jawaban (DOCX)</button>
+                    </div>
+                    <textarea id="cat-answer-text" class="mt-2 w-full h-40 border border-emerald-200 rounded-lg p-3 text-sm" placeholder="Ketik jawaban atau catatan Anda di sini"></textarea>
+                    <p class="mt-1 text-xs text-emerald-500">Catatan: konten ini disimpan hanya saat Anda menekan tombol unduh atau simpan jawaban.</p>
+                </div>
             @endif
         </div>
 
@@ -130,6 +140,11 @@
                 <li>Mendeteksi jika jendela/tab kehilangan fokus dan menampilkan peringatan.</li>
                 <li>Mencatat pelanggaran (keluar dari fullscreen, berpindah tab) ke konsol.</li>
             </ul>
+            @if ($exam->question_url)
+                <p class="text-sm text-emerald-600">Link ujian CAT:
+                    <a href="{{ $exam->question_url }}" target="_blank" rel="noopener" class="text-emerald-700 underline">Buka soal</a>
+                </p>
+            @endif
         </div>
 
         <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
@@ -143,11 +158,14 @@
                 const btnStart = document.getElementById('btn-start-exam');
                 const btnExit = document.getElementById('btn-exit-exam');
                 const btnStartDocx = document.getElementById('btn-start-docx');
+                const btnExitDocx = document.getElementById('btn-exit-docx');
                 const docxWrapper = document.getElementById('docx-wrapper');
                 const docxViewer = document.getElementById('docx-viewer');
                 const docxUrl = "{{ isset($url) ? $url : '' }}";
                 const csrf = '{{ csrf_token() }}';
                 const autoFinishUrl = '{{ route('murid.exams.auto_finish', $exam) }}';
+                const submitTextUrl = '{{ route('murid.exams.submit_text', $exam) }}';
+                const heartbeatUrl = '{{ route('murid.exams.heartbeat', $exam) }}';
                 const locked = {{ $examLocked ? 'true' : 'false' }};
                 @php
                     $initialRemainingMs = $exam->end_at ? max(0, now()->diffInMilliseconds($exam->end_at, false)) : 0;
@@ -159,6 +177,9 @@
                 const totalDurationMsServer = {{ $totalDurationMs }};
                 const countdownText = document.getElementById('countdown-text');
                 const countdownProgress = document.getElementById('countdown-progress');
+                const catAnswerPanel = document.getElementById('cat-answer-panel');
+                const catAnswerText = document.getElementById('cat-answer-text');
+                const btnExportCatDocx = document.getElementById('btn-export-cat-docx');
 
                 const requireFullscreen = () => {
                     const el = document.documentElement;
@@ -190,7 +211,11 @@
                 let finishedOnce = false;
                 let countdownTimer = null;
                 let initialRemainingMs = 0;
+                let lastRemainingMs = 0;
                 let preflightMode = null;
+                const VIOLATION_THRESHOLD = 2; // jumlah pelanggaran yang diperbolehkan sebelum auto-submit
+                const HEARTBEAT_INTERVAL_MS = 7000; // heartbeat tiap 7 detik
+                let heartbeatTimer = null;
 
                 const startExam = () => {
                     examActive = true;
@@ -200,6 +225,8 @@
                     requireFullscreen();
                     warn('Mode ujian aktif. Tetap di halaman ini.');
                     startCountdown();
+                    startHeartbeat();
+                    if (catAnswerPanel) catAnswerPanel.classList.remove('hidden');
                 };
 
                 const exitExam = () => {
@@ -207,11 +234,13 @@
                     if (frameWrapper) frameWrapper.classList.add('hidden');
                     if (intro) intro.classList.remove('hidden');
                     if (docxWrapper) docxWrapper.classList.add('hidden');
+                    if (catAnswerPanel) catAnswerPanel.classList.add('hidden');
                     if (document.fullscreenElement && document.exitFullscreen) {
                         document.exitFullscreen().catch(() => {});
                     }
                     warn('Mode ujian dinonaktifkan.');
                     stopCountdown();
+                    stopHeartbeat();
                 };
 
                 const startDocxExam = async () => {
@@ -221,6 +250,7 @@
                     requireFullscreen();
                     warn('Mode ujian (Dokumen) aktif. Tetap di halaman ini.');
                     startCountdown();
+                    startHeartbeat();
 
                     try {
                         if (docxUrl && docxViewer) {
@@ -254,6 +284,33 @@
                     if (btnStartDocx) { btnStartDocx.disabled = true; btnStartDocx.classList.add('opacity-50','cursor-not-allowed'); }
                 };
 
+                const autoSubmit = async () => {
+                    if (finishedOnce) return;
+                    const form = document.getElementById('text-answer-form');
+                    const textarea = form ? form.querySelector('textarea[name="answer_text"]') : null;
+                    const answer = textarea ? textarea.value.trim() : '';
+                    if (form && answer.length >= 5) {
+                        finishedOnce = true;
+                        try {
+                            await fetch(submitTextUrl, {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': csrf },
+                                body: (() => { const fd = new FormData(); fd.append('answer_text', answer); return fd; })(),
+                            });
+                            exitExam();
+                            warn('Jawaban otomatis disimpan. Ujian selesai.');
+                            const banner = document.getElementById('locked-banner');
+                            if (banner) banner.classList.remove('hidden');
+                            if (btnStart) { btnStart.disabled = true; btnStart.classList.add('opacity-50','cursor-not-allowed'); }
+                            if (btnStartDocx) { btnStartDocx.disabled = true; btnStartDocx.classList.add('opacity-50','cursor-not-allowed'); }
+                            return;
+                        } catch (e) {
+                            // fallback ke autoFinish bila gagal
+                        }
+                    }
+                    await autoFinish();
+                };
+
                 function stopCountdown() {
                     if (countdownTimer) {
                         clearInterval(countdownTimer);
@@ -281,6 +338,7 @@
                     countdownTimer = setInterval(() => {
                         const elapsedMs = Date.now() - startedAtClientMs;
                         const remainingMs = Math.max(0, initialRemainingMs - elapsedMs);
+                        lastRemainingMs = remainingMs;
                         if (countdownText) countdownText.textContent = fmt(remainingMs);
                         if (countdownProgress && initialRemainingMs > 0) {
                             let used = 0;
@@ -293,9 +351,32 @@
                         }
                         if (remainingMs <= 0) {
                             stopCountdown();
-                            if (examActive) autoFinish();
+                            if (examActive) autoSubmit();
                         }
                     }, 500);
+                }
+
+                function startHeartbeat() {
+                    if (heartbeatTimer) return;
+                    const send = async () => {
+                        try {
+                            await fetch(heartbeatUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrf,
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ violations, remaining_ms: Math.max(0, Math.floor(lastRemainingMs || 0)) }),
+                            });
+                        } catch (e) {}
+                    };
+                    send();
+                    heartbeatTimer = setInterval(send, HEARTBEAT_INTERVAL_MS);
+                }
+
+                function stopHeartbeat() {
+                    if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; }
                 }
 
                 // Modal pre-start 5 detik
@@ -326,11 +407,37 @@
                     };
                 }
 
+                // Modal konfirmasi keluar/selesai
+                const confirmExitModal = document.getElementById('confirmExitModal');
+                const confirmExitCancel = document.getElementById('confirmExitCancel');
+                const confirmExitConfirm = document.getElementById('confirmExitConfirm');
+                function openConfirmExit() {
+                    if (!examActive) return; // hanya saat ujian aktif
+                    if (!confirmExitModal) { autoSubmit(); return; }
+                    confirmExitModal.classList.remove('hidden');
+                    // fokus ke tombol konfirmasi untuk aksesibilitas
+                    if (confirmExitConfirm) confirmExitConfirm.focus();
+                }
+                if (confirmExitCancel) {
+                    confirmExitCancel.addEventListener('click', () => {
+                        confirmExitModal.classList.add('hidden');
+                    });
+                }
+                if (confirmExitConfirm) {
+                    confirmExitConfirm.addEventListener('click', async () => {
+                        confirmExitModal.classList.add('hidden');
+                        await autoSubmit();
+                    });
+                }
+
                 document.addEventListener('visibilitychange', () => {
                     if (document.hidden && examActive) {
                         violations++;
                         console.warn('Exam focus lost. Violations:', violations);
-                        autoFinish();
+                        warn('Fokus hilang dari halaman ujian. Harap tetap di sini.');
+                        if (violations >= VIOLATION_THRESHOLD) {
+                            autoSubmit();
+                        }
                     }
                 });
 
@@ -338,13 +445,20 @@
                     if (examActive) {
                         violations++;
                         console.warn('Window blurred. Violations:', violations);
-                        autoFinish();
+                        warn('Jendela kehilangan fokus saat ujian.');
+                        if (violations >= VIOLATION_THRESHOLD) {
+                            autoSubmit();
+                        }
                     }
                 });
 
                 document.addEventListener('fullscreenchange', () => {
                     if (!document.fullscreenElement && examActive) {
-                        autoFinish();
+                        violations++;
+                        warn('Keluar dari layar penuh saat ujian.');
+                        if (violations >= VIOLATION_THRESHOLD) {
+                            autoSubmit();
+                        }
                     }
                 });
 
@@ -386,8 +500,34 @@
                 });
 
                 if (btnStart && !locked) btnStart.addEventListener('click', () => openPreflight('cat'));
-                if (btnExit) btnExit.addEventListener('click', exitExam);
+                if (btnExit) btnExit.addEventListener('click', openConfirmExit);
                 if (btnStartDocx && !locked) btnStartDocx.addEventListener('click', () => openPreflight('docx'));
+                if (btnExitDocx) btnExitDocx.addEventListener('click', openConfirmExit);
+                if (btnExportCatDocx) {
+                    btnExportCatDocx.addEventListener('click', async () => {
+                        const text = (catAnswerText ? catAnswerText.value : '').trim();
+                        if (!text || text.length < 1) { warn('Isi jawaban/ catatan sebelum mengunduh DOCX.'); return; }
+                        try {
+                            const fd = new FormData();
+                            fd.append('answer_text', text);
+                            const res = await fetch('{{ route('murid.exams.export_docx', $exam) }}', {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': csrf },
+                                body: fd,
+                            });
+                            if (!res.ok) { warn('Gagal membuat DOCX.'); return; }
+                            const blob = await res.blob();
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'Jawaban_{{ preg_replace('/[^A-Za-z0-9_\-]/', '_', $exam->title) }}.docx';
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            URL.revokeObjectURL(url);
+                        } catch (e) { warn('Terjadi kesalahan saat mengunduh DOCX.'); }
+                    });
+                }
                 if (locked) {
                     if (btnStart) { btnStart.disabled = true; btnStart.classList.add('opacity-50','cursor-not-allowed'); }
                     if (btnStartDocx) { btnStartDocx.disabled = true; btnStartDocx.classList.add('opacity-50','cursor-not-allowed'); }
@@ -411,6 +551,25 @@
                     <div class="px-4 py-3 border-t border-emerald-100 flex justify-end gap-2">
                         <button type="button" class="px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200" onclick="(function(){const m=document.getElementById('preflightModal'); if(m) m.classList.add('hidden');})()">Batal</button>
                         <button id="preflightConfirm" type="button" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Saya mengerti, mulai</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal konfirmasi selesai -->
+        <div id="confirmExitModal" class="fixed inset-0 hidden bg-black/40 z-50">
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="w-full max-w-md bg-white rounded-xl shadow-xl border border-emerald-100">
+                    <div class="px-4 py-3 border-b border-emerald-100">
+                        <p class="text-emerald-900 font-semibold">Konfirmasi Selesai Ujian</p>
+                    </div>
+                    <div class="p-4 space-y-2">
+                        <p class="text-sm text-emerald-700">Anda yakin ingin mengakhiri ujian dan menyimpan jawaban?</p>
+                        <p class="text-xs text-emerald-600">Pastikan jawaban sudah benar. Setelah ini ujian akan ditutup.</p>
+                    </div>
+                    <div class="px-4 py-3 border-t border-emerald-100 flex justify-end gap-2">
+                        <button id="confirmExitCancel" type="button" class="px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Batal</button>
+                        <button id="confirmExitConfirm" type="button" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Ya, Akhiri</button>
                     </div>
                 </div>
             </div>
