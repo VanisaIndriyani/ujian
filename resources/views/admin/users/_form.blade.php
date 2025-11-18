@@ -62,6 +62,7 @@
             </button>
         </div>
         <p class="text-xs text-emerald-400 mt-1">{{ $isEdit ? 'Kosongkan jika tidak ingin mengubah password.' : 'Jika dikosongkan akan digenerate otomatis.' }}</p>
+        
     </div>
 
     <div class="md:col-span-2">

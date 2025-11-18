@@ -29,6 +29,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    // Profil Admin
+    Route::get('profile/edit', [\App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
 
     Route::resource('users', AdminUserController::class);
     Route::post('users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset_password');
@@ -57,6 +60,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
 Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(function () {
     Route::get('dashboard', [GuruDashboardController::class, 'index'])->name('dashboard');
+    // Profil Guru
+    Route::get('profile/edit', [\App\Http\Controllers\Guru\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [\App\Http\Controllers\Guru\ProfileController::class, 'update'])->name('profile.update');
     Route::patch('tasks/{task}/submissions/{submission}', [GuruTaskController::class, 'gradeSubmission'])->name('tasks.submissions.update');
     Route::resource('tasks', GuruTaskController::class);
     Route::resource('subjects', \App\Http\Controllers\Guru\SubjectController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
@@ -83,6 +89,9 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
 
 Route::middleware(['auth', 'role:murid'])->prefix('murid')->name('murid.')->group(function () {
     Route::get('dashboard', [MuridDashboardController::class, 'index'])->name('dashboard');
+    // Profil Murid
+    Route::get('profile/edit', [\App\Http\Controllers\Murid\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [\App\Http\Controllers\Murid\ProfileController::class, 'update'])->name('profile.update');
     Route::resource('tasks', MuridTaskController::class)->only(['index', 'create', 'store']);
     Route::resource('exams', MuridExamController::class)->only(['index', 'show', 'store']);
     Route::post('exams/{exam}/submit-file', [MuridExamController::class, 'submitFile'])->name('exams.submit_file');

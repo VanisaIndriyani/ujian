@@ -77,6 +77,9 @@
                             <img src="{{ auth()->user()->profile_photo_url }}" alt="Foto Dosen" class="h-8 w-8 rounded-full object-cover">
                             <span class="text-sm font-medium text-emerald-900">{{ auth()->user()->name }}</span>
                         </div>
+                        <a href="{{ route('guru.profile.edit') }}" title="Edit Profil" aria-label="Edit Profil" class="inline-flex items-center justify-center p-2 text-emerald-600 bg-emerald-100 rounded-lg shadow hover:bg-emerald-200">
+                            <i class="fa-solid fa-user-pen"></i>
+                        </a>
                         <form action="{{ route('logout') }}" method="POST">
                             @csrf
                             <button type="submit" aria-label="Keluar" title="Keluar" class="inline-flex items-center justify-center p-2 text-white bg-emerald-600 rounded-lg shadow hover:bg-emerald-700">

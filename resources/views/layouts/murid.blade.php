@@ -71,12 +71,17 @@
                         <button id="mobileMenuToggle" class="lg:hidden text-emerald-600 text-2xl">☰</button>
                         <h1 class="text-xl font-semibold text-emerald-900">@yield('header', 'Ringkasan Mahasiswa')</h1>
                     </div>
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" aria-label="Keluar" title="Keluar" class="inline-flex items-center justify-center p-2 text-white bg-emerald-600 rounded-lg shadow hover:bg-emerald-700">
-                            <i class="fa-solid fa-right-from-bracket"></i>
-                        </button>
-                    </form>
+                    <div class="flex items-center gap-4">
+                        <a href="{{ route('murid.profile.edit') }}" title="Edit Profil" aria-label="Edit Profil" class="inline-flex items-center justify-center p-2 text-emerald-600 bg-emerald-100 rounded-lg shadow hover:bg-emerald-200">
+                            <i class="fa-solid fa-user-pen"></i>
+                        </a>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button type="submit" aria-label="Keluar" title="Keluar" class="inline-flex items-center justify-center p-2 text-white bg-emerald-600 rounded-lg shadow hover:bg-emerald-700">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </header>
 
