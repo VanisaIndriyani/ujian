@@ -66,8 +66,16 @@
                         // Normalisasi path agar mendukung nilai seperti "exams/materials/...", "public/exams/...", atau "storage/exams/..."
                         $raw = ltrim($exam->material_path, '/');
                         $normalized = preg_replace('#^(storage/|public/)#', '', $raw);
-                        $url = \Illuminate\Support\Facades\Storage::url($normalized);
+                        // Cek apakah file exists di storage
+                        $fileExists = \Illuminate\Support\Facades\Storage::disk('public')->exists($normalized);
+                        // Gunakan disk('public')->url() untuk mendapatkan URL yang benar
+                        $url = $fileExists ? \Illuminate\Support\Facades\Storage::disk('public')->url($normalized) : null;
                     @endphp
+                    @if(!$url || !$fileExists)
+                        <div class="rounded-xl border border-red-100 p-4 bg-red-50">
+                            <p class="text-sm text-red-700">File materi ujian tidak ditemukan.</p>
+                        </div>
+                    @elseif ($ext === 'pdf')
                     @if ($ext === 'pdf')
                         <iframe src="{{ $url }}#toolbar=0" class="w-full h-[78vh] bg-white" referrerpolicy="no-referrer"></iframe>
                     @else
