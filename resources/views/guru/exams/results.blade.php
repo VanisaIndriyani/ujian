@@ -26,7 +26,6 @@
                             <th class="px-4 py-3 text-left">Status</th>
                             <th class="px-4 py-3 text-left">Waktu</th>
                             <th class="px-4 py-3 text-left">Jawaban</th>
-                            <th class="px-4 py-3 text-left">Nilai</th>
                             <th class="px-4 py-3 text-left">Catatan</th>
                             <th class="px-4 py-3 text-left">Aksi</th>
                         </tr>
@@ -57,7 +56,6 @@
                                         —
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-emerald-800">{{ is_null($res->score) ? '—' : $res->score }}</td>
                                 <td class="px-4 py-3">
                                     @if($res->status === 'auto_finished')
                                         <span class="text-red-600">{{ $res->notes ?? 'Ujian selesai otomatis: keluar tab/layar.' }}</span>
@@ -65,31 +63,20 @@
                                         <span class="text-emerald-800">{{ $res->notes ?? '—' }}</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-emerald-800 space-y-2">
+                                <td class="px-4 py-3 text-emerald-800">
                                     @if($res->answer_path)
                                         <a href="{{ route('guru.exams.results.download', [$exam, $res]) }}" class="inline-flex items-center gap-2 px-2 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700">
                                             <i class="fa-solid fa-download"></i>
                                             <span>Unduh Berkas</span>
                                         </a>
+                                    @else
+                                        —
                                     @endif
-                                    <form action="{{ route('guru.exams.results.update', [$exam, $res]) }}" method="POST" class="flex items-center gap-2">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="number" name="score" step="0.01" min="0" max="100"
-                                               value="{{ old('score', $res->score) }}"
-                                               class="w-24 rounded-lg border border-emerald-200 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                                               placeholder="Nilai" required>
-                                        <input type="hidden" name="notes" value="{{ old('notes', $res->notes) }}">
-                                        <button type="submit" class="inline-flex items-center gap-2 px-2 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700">
-                                            <i class="fa-solid fa-floppy-disk"></i>
-                                            <span>Simpan Nilai</span>
-                                        </button>
-                                    </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-6 text-center text-emerald-400">Belum ada jawaban mahasiswa.</td>
+                                <td colspan="7" class="px-4 py-6 text-center text-emerald-400">Belum ada jawaban mahasiswa.</td>
                             </tr>
                         @endforelse
                     </tbody>
