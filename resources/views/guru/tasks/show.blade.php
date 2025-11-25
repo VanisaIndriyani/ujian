@@ -6,7 +6,7 @@
 @endphp
 
 @section('title', 'Detail Tugas')
-@section('header', 'Detail Tugas & Penilaian')
+@section('header', 'Detail Tugas')
 
 @section('content')
     <div class="space-y-6">
@@ -35,7 +35,7 @@
             <div class="px-6 py-4 border-b border-emerald-100 flex items-center justify-between">
                 <div>
                     <h3 class="text-lg font-semibold text-emerald-900">Pengumpulan Mahasiswa</h3>
-                    <p class="text-sm text-emerald-500">Beri nilai untuk setiap mahasiswa.</p>
+                    <p class="text-sm text-emerald-500">Lihat pengumpulan tugas dari mahasiswa.</p>
                 </div>
                 <a href="{{ route('guru.tasks.index') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-emerald-200 text-emerald-600 hover:bg-emerald-50">
                     &larr; Kembali ke daftar tugas
@@ -50,7 +50,6 @@
                             <th class="px-4 py-3 text-left">Pengumpulan</th>
                             <th class="px-4 py-3 text-left">Jawaban</th>
                             <th class="px-4 py-3 text-left">Berkas</th>
-                            <th class="px-4 py-3 text-left">Penilaian</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-emerald-50">
@@ -89,28 +88,10 @@
                                         <span class="text-xs text-emerald-400">Tidak ada berkas.</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-4 w-64">
-                                    <form action="{{ route('guru.tasks.submissions.update', [$task, $submission]) }}" method="POST" class="space-y-3">
-                                        @csrf
-                                        @method('PATCH')
-                                        <div>
-                                            <label class="block text-xs font-medium text-emerald-500">Nilai (0 - 100)</label>
-                                            <input type="number" name="score" step="0.01" min="0" max="100"
-                                                   value="{{ old('score', $submission->score) }}"
-                                                   class="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                                                   required>
-                                        </div>
-                                        
-                                        <button type="submit"
-                                                class="inline-flex items-center justify-center w-full px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow hover:bg-emerald-700">
-                                            Simpan Nilai
-                                        </button>
-                                    </form>
-                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-6 text-center text-emerald-400">
+                                <td colspan="4" class="px-4 py-6 text-center text-emerald-400">
                                     Belum ada mahasiswa yang mengumpulkan tugas ini.
                                 </td>
                             </tr>
