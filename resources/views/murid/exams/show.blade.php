@@ -132,19 +132,66 @@
             @endif
         </div>
 
-        <div class="bg-white border border-emerald-100 rounded-2xl shadow p-6 space-y-3">
-            <p class="text-sm text-emerald-600">Catatan: Untuk keamanan ujian, sistem akan:
-            </p>
-            <ul class="list-disc pl-5 text-sm text-emerald-600">
-                <li>Meminta layar penuh saat ujian dibuka.</li>
-                <li>Mendeteksi jika jendela/tab kehilangan fokus dan menampilkan peringatan.</li>
-                <li>Mencatat pelanggaran (keluar dari fullscreen, berpindah tab) ke konsol.</li>
-            </ul>
-            @if ($exam->question_url)
-                <p class="text-sm text-emerald-600">Link ujian CAT:
-                    <a href="{{ $exam->question_url }}" target="_blank" rel="noopener" class="text-emerald-700 underline">Buka soal</a>
-                </p>
+        <div class="space-y-6">
+            @if ($result && $result->submitted_at)
+                <div class="bg-white border border-emerald-100 rounded-2xl shadow p-6 space-y-3">
+                    <h3 class="text-lg font-semibold text-emerald-900">Status Ujian</h3>
+                    <div class="space-y-2">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-emerald-400">Status</p>
+                            <p class="text-sm font-medium text-emerald-700">
+                                @if($result->status === 'submitted')
+                                    Sudah Dikumpulkan
+                                @elseif($result->status === 'auto_finished')
+                                    Selesai Otomatis
+                                @elseif($result->status === 'finished')
+                                    Selesai
+                                @else
+                                    Dalam Proses
+                                @endif
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-emerald-400">Waktu Pengumpulan</p>
+                            <p class="text-sm text-emerald-600">
+                                {{ optional($result->submitted_at)->format('d M Y H:i') ?? '-' }}
+                            </p>
+                        </div>
+                        @if($result->score !== null)
+                            <div>
+                                <p class="text-xs uppercase tracking-wide text-emerald-400">Nilai</p>
+                                <p class="text-2xl font-bold text-emerald-700">{{ number_format($result->score, 2) }}</p>
+                            </div>
+                        @else
+                            <div>
+                                <p class="text-xs uppercase tracking-wide text-emerald-400">Nilai</p>
+                                <p class="text-sm text-emerald-500">Menunggu penilaian</p>
+                            </div>
+                        @endif
+                        @if($result->notes)
+                            <div>
+                                <p class="text-xs uppercase tracking-wide text-emerald-400">Catatan</p>
+                                <p class="text-sm text-emerald-600">{{ $result->notes }}</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             @endif
+
+            <div class="bg-white border border-emerald-100 rounded-2xl shadow p-6 space-y-3">
+                <p class="text-sm text-emerald-600">Catatan: Untuk keamanan ujian, sistem akan:
+                </p>
+                <ul class="list-disc pl-5 text-sm text-emerald-600">
+                    <li>Meminta layar penuh saat ujian dibuka.</li>
+                    <li>Mendeteksi jika jendela/tab kehilangan fokus dan menampilkan peringatan.</li>
+                    <li>Mencatat pelanggaran (keluar dari fullscreen, berpindah tab) ke konsol.</li>
+                </ul>
+                @if ($exam->question_url)
+                    <p class="text-sm text-emerald-600">Link ujian CAT:
+                        <a href="{{ $exam->question_url }}" target="_blank" rel="noopener" class="text-emerald-700 underline">Buka soal</a>
+                    </p>
+                @endif
+            </div>
         </div>
 
         <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
