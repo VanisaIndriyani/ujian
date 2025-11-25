@@ -128,7 +128,11 @@ class TaskController extends Controller
 
     protected function authorizeTask(Assignment $task): void
     {
-        abort_if($task->guru_id !== Auth::id(), 403);
+        // Admin bisa akses semua tasks, guru hanya bisa akses tasks mereka sendiri
+        $user = Auth::user();
+        if ($user->role !== 'admin' && $task->guru_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses tugas ini.');
+        }
     }
 }
 
