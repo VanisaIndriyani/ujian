@@ -63,8 +63,9 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     // Profil Guru
     Route::get('profile/edit', [\App\Http\Controllers\Guru\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [\App\Http\Controllers\Guru\ProfileController::class, 'update'])->name('profile.update');
-    Route::patch('tasks/{task}/submissions/{submission}', [GuruTaskController::class, 'gradeSubmission'])->name('tasks.submissions.update');
+    // Route submissions harus didefinisikan SETELAH route resource untuk menghindari konflik
     Route::resource('tasks', GuruTaskController::class);
+    Route::patch('tasks/{task}/submissions/{submission}', [GuruTaskController::class, 'gradeSubmission'])->name('tasks.submissions.update');
     Route::resource('subjects', \App\Http\Controllers\Guru\SubjectController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::resource('attendances', GuruAttendanceController::class)->only(['index', 'create', 'store', 'edit', 'update']);
         // Dosen: full CRUD + hasil ujian
