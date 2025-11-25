@@ -130,27 +130,12 @@ class TaskController extends Controller
     {
         $user = Auth::user();
         
-        // Admin bisa akses semua tasks
-        if ($user->role === 'admin') {
+        // Admin dan Guru bisa akses semua tasks
+        if (in_array($user->role, ['admin', 'guru'])) {
             return;
         }
         
-        // Guru yang membuat task bisa akses
-        if ($task->guru_id === $user->id) {
-            return;
-        }
-        
-        // Load subject jika belum di-load
-        if (!$task->relationLoaded('subject')) {
-            $task->load('subject');
-        }
-        
-        // Guru yang mengajar subject dari task tersebut juga bisa akses
-        if ($task->subject && $task->subject->guru_id === $user->id) {
-            return;
-        }
-        
-        // Jika tidak memenuhi kondisi di atas, tolak akses
+        // Jika tidak admin atau guru, tolak akses
         abort(403, 'Anda tidak memiliki izin untuk mengakses tugas ini.');
     }
 }
