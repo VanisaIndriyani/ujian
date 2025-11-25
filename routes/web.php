@@ -68,10 +68,11 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::resource('subjects', \App\Http\Controllers\Guru\SubjectController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::resource('attendances', GuruAttendanceController::class)->only(['index', 'create', 'store', 'edit', 'update']);
         // Dosen: full CRUD + hasil ujian
-        Route::resource('exams', GuruExamController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+        // Route results harus didefinisikan SEBELUM route resource untuk menghindari konflik
     Route::get('exams/{exam}/results', [GuruExamController::class, 'results'])->name('exams.results');
     Route::get('exams/{exam}/results/{result}/download', [GuruExamController::class, 'downloadSubmission'])->name('exams.results.download');
     Route::patch('exams/{exam}/results/{result}', [GuruExamController::class, 'gradeResult'])->name('exams.results.update');
+    Route::resource('exams', GuruExamController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::get('grades', [GuruGradeController::class, 'index'])->name('grades.index');
     Route::get('grades/uts', [GuruGradeController::class, 'uts'])->name('grades.uts');
     Route::get('grades/uas', [GuruGradeController::class, 'uas'])->name('grades.uas');
