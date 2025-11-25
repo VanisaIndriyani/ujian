@@ -22,11 +22,6 @@ use App\Http\Controllers\Murid\TaskController as MuridTaskController;
 use Illuminate\Support\Facades\Route;
 use App\Models\AssignmentSubmission;
 
-// Route model binding untuk submission
-Route::bind('submission', function ($value) {
-    return AssignmentSubmission::findOrFail($value);
-});
-
 Route::get('/', fn () => redirect()->route('login'));
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
