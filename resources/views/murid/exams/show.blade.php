@@ -76,7 +76,6 @@
                             <p class="text-sm text-red-700">File materi ujian tidak ditemukan.</p>
                         </div>
                     @elseif ($ext === 'pdf')
-                    @if ($ext === 'pdf')
                         <iframe src="{{ $url }}#toolbar=0" class="w-full h-[78vh] bg-white" referrerpolicy="no-referrer"></iframe>
                     @else
                         <div class="rounded-xl border border-emerald-100 p-4 bg-emerald-50">
