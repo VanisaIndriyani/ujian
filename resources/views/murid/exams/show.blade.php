@@ -68,8 +68,8 @@
                         $normalized = preg_replace('#^(storage/|public/)#', '', $raw);
                         // Cek apakah file exists di storage
                         $fileExists = \Illuminate\Support\Facades\Storage::disk('public')->exists($normalized);
-                        // Gunakan disk('public')->url() untuk mendapatkan URL yang benar
-                        $url = $fileExists ? \Illuminate\Support\Facades\Storage::disk('public')->url($normalized) : null;
+                        // Gunakan asset() helper yang otomatis mengikuti base URL
+                        $url = $fileExists ? asset('storage/' . ltrim($normalized, '/')) : null;
                     @endphp
                     @if(!$url || !$fileExists)
                         <div class="rounded-xl border border-red-100 p-4 bg-red-50">
