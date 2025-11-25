@@ -174,6 +174,48 @@ class ExamController extends Controller
     }
 
     /**
+     * Menandai ujian selesai secara manual (finish) saat murid klik tombol selesai.
+     * Simpan jawaban terakhir dan tandai status sebagai 'finished'.
+     */
+    public function finish(Request $request, Exam $exam)
+    {
+        $murid = Auth::user();
+
+        // Izinkan jika murid terdaftar di mata kuliah atau ujian berkelas sesuai kelas murid
+        $enrolled = $murid->subjects()->where('subjects.id', $exam->subject_id)->exists();
+        $classAllowed = !is_null($exam->classroom) && $exam->classroom === $murid->classroom;
+        abort_if(!($enrolled || $classAllowed), 403);
+
+        // Cek apakah ujian sudah selesai sebelumnya
+        $existingResult = ExamResult::where('exam_id', $exam->id)
+            ->where('student_id', $murid->id)
+            ->first();
+
+        if ($existingResult && in_array($existingResult->status, ['submitted', 'finished', 'auto_finished'])) {
+            return response()->json(['ok' => true, 'message' => 'Ujian sudah selesai.']);
+        }
+
+        $data = $request->validate([
+            'answer_text' => 'nullable|string',
+        ]);
+
+        ExamResult::updateOrCreate(
+            [
+                'exam_id' => $exam->id,
+                'student_id' => $murid->id,
+            ],
+            [
+                'answer_text' => $data['answer_text'] ?? $existingResult->answer_text ?? null,
+                'status' => 'finished',
+                'notes' => 'Ujian selesai oleh murid.',
+                'submitted_at' => now(),
+            ]
+        );
+
+        return response()->json(['ok' => true, 'message' => 'Ujian berhasil diselesaikan.']);
+    }
+
+    /**
      * Heartbeat ujian: menandai sesi aktif dan mencatat pelanggaran/remaining time.
      * Disimpan di ExamResult sebagai status "in_progress" dan catatan singkat.
      */

@@ -218,6 +218,7 @@
                 const docxUrl = "{{ isset($url) ? $url : '' }}";
                 const csrf = '{{ csrf_token() }}';
                 const autoFinishUrl = '{{ route('murid.exams.auto_finish', $exam) }}';
+                const finishUrl = '{{ route('murid.exams.finish', $exam) }}';
                 const submitTextUrl = '{{ route('murid.exams.submit_text', $exam) }}';
                 const heartbeatUrl = '{{ route('murid.exams.heartbeat', $exam) }}';
                 const locked = {{ $examLocked ? 'true' : 'false' }};
@@ -336,6 +337,43 @@
                     if (banner) banner.classList.remove('hidden');
                     if (btnStart) { btnStart.disabled = true; btnStart.classList.add('opacity-50','cursor-not-allowed'); }
                     if (btnStartDocx) { btnStartDocx.disabled = true; btnStartDocx.classList.add('opacity-50','cursor-not-allowed'); }
+                };
+
+                const finishExam = async () => {
+                    if (finishedOnce) return;
+                    finishedOnce = true;
+                    
+                    // Simpan jawaban terakhir jika ada
+                    const form = document.getElementById('text-answer-form');
+                    const textarea = form ? form.querySelector('textarea[name="answer_text"]') : null;
+                    const answer = textarea ? textarea.value.trim() : '';
+                    
+                    try {
+                        const formData = new FormData();
+                        if (answer.length >= 5) {
+                            formData.append('answer_text', answer);
+                        }
+                        
+                        const response = await fetch(finishUrl, {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': csrf },
+                            body: formData,
+                        });
+                        
+                        if (response.ok) {
+                            exitExam();
+                            warn('Ujian berhasil diselesaikan.');
+                            const banner = document.getElementById('locked-banner');
+                            if (banner) banner.classList.remove('hidden');
+                            if (btnStart) { btnStart.disabled = true; btnStart.classList.add('opacity-50','cursor-not-allowed'); }
+                            if (btnStartDocx) { btnStartDocx.disabled = true; btnStartDocx.classList.add('opacity-50','cursor-not-allowed'); }
+                            // Reload halaman untuk menampilkan status terkunci
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
+                    } catch (e) {
+                        console.error('Error finishing exam:', e);
+                        finishedOnce = false;
+                    }
                 };
 
                 const autoSubmit = async () => {
@@ -480,7 +518,7 @@
                 if (confirmExitConfirm) {
                     confirmExitConfirm.addEventListener('click', async () => {
                         confirmExitModal.classList.add('hidden');
-                        await autoSubmit();
+                        await finishExam();
                     });
                 }
 
