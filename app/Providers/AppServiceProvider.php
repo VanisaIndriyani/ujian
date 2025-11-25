@@ -28,11 +28,7 @@ class AppServiceProvider extends ServiceProvider
         if (!app()->runningInConsole()) {
             $base = rtrim(request()->getSchemeAndHttpHost() . request()->getBaseUrl(), '/');
 
-            // Jika hosting menghasilkan base seperti "/ujian/public",
-            // hapus "/public" agar cookie sesi dan URL konsisten.
-            if (Str::endsWith($base, '/public')) {
-                $base = rtrim(Str::replaceLast('/public', '', $base), '/');
-            }
+            // Jaga base URL sesuai dengan request (termasuk /public jika ada)
             if (!empty($base)) {
                 URL::forceRootUrl($base);
             }
