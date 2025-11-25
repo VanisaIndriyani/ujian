@@ -86,7 +86,10 @@ class ExamController extends Controller
     public function edit(Exam $exam): View
     {
         $guru = Auth::user();
-        abort_if($exam->creator_id !== $guru->id, 403);
+        // Admin dan Guru bisa akses semua exams
+        if (!in_array($guru->role, ['admin', 'guru'])) {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
 
         $subjects = Auth::user()->subjectsTeaching()->orderBy('name')->get();
         $classrooms = Classroom::orderBy('name')->pluck('name');
@@ -150,7 +153,10 @@ class ExamController extends Controller
     public function results(Exam $exam): View
     {
         $guru = Auth::user();
-        abort_if($exam->creator_id !== $guru->id, 403);
+        // Admin dan Guru bisa akses semua exams results
+        if (!in_array($guru->role, ['admin', 'guru'])) {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
 
         $results = $exam->results()
             ->with('student')

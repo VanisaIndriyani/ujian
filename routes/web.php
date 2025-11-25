@@ -94,12 +94,13 @@ Route::middleware(['auth', 'role:murid'])->prefix('murid')->name('murid.')->grou
     Route::get('profile/edit', [\App\Http\Controllers\Murid\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [\App\Http\Controllers\Murid\ProfileController::class, 'update'])->name('profile.update');
     Route::resource('tasks', MuridTaskController::class)->only(['index', 'create', 'store']);
-    Route::resource('exams', MuridExamController::class)->only(['index', 'show', 'store']);
+    // Route POST untuk exams harus didefinisikan SEBELUM route resource untuk menghindari konflik
     Route::post('exams/{exam}/submit-file', [MuridExamController::class, 'submitFile'])->name('exams.submit_file');
     Route::post('exams/{exam}/submit-text', [MuridExamController::class, 'submitText'])->name('exams.submit_text');
     Route::post('exams/{exam}/heartbeat', [MuridExamController::class, 'heartbeat'])->name('exams.heartbeat');
     Route::post('exams/{exam}/auto-finish', [MuridExamController::class, 'autoFinish'])->name('exams.auto_finish');
     Route::post('exams/{exam}/export-docx', [MuridExamController::class, 'exportDocx'])->name('exams.export_docx');
+    Route::resource('exams', MuridExamController::class)->only(['index', 'show', 'store']);
     Route::get('attendances', [MuridAttendanceController::class, 'index'])->name('attendances.index');
     Route::get('grades', [MuridGradeController::class, 'index'])->name('grades.index');
 });
