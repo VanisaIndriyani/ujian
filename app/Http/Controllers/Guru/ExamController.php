@@ -100,7 +100,10 @@ class ExamController extends Controller
     public function update(Request $request, Exam $exam): RedirectResponse
     {
         $guru = Auth::user();
-        abort_if($exam->creator_id !== $guru->id, 403);
+        // Admin dan Guru bisa akses semua exams
+        if (!in_array($guru->role, ['admin', 'guru'])) {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
 
         $data = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
@@ -114,7 +117,10 @@ class ExamController extends Controller
             'end_at' => 'nullable|date|after_or_equal:start_at',
         ]);
 
-        abort_if(!$guru->subjectsTeaching()->where('subjects.id', $data['subject_id'])->exists(), 403);
+        // Jika guru (bukan admin), pastikan subject yang dipilih adalah subject yang diajarkan oleh guru tersebut
+        if ($guru->role === 'guru') {
+            abort_if(!$guru->subjectsTeaching()->where('subjects.id', $data['subject_id'])->exists(), 403, 'Anda tidak memiliki izin untuk mengubah mata kuliah ini.');
+        }
 
         $materialPath = $exam->material_path;
         if ($request->hasFile('material_file')) {
@@ -135,7 +141,10 @@ class ExamController extends Controller
     public function destroy(Exam $exam): RedirectResponse
     {
         $guru = Auth::user();
-        abort_if($exam->creator_id !== $guru->id, 403);
+        // Admin dan Guru bisa akses semua exams
+        if (!in_array($guru->role, ['admin', 'guru'])) {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
 
         if (!empty($exam->material_path)) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($exam->material_path);
