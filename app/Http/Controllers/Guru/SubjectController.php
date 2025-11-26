@@ -13,7 +13,8 @@ class SubjectController extends Controller
 {
     public function index(): View
     {
-        $subjects = Subject::where('guru_id', Auth::id())
+        // Semua guru bisa melihat semua mata kuliah
+        $subjects = Subject::with('guru')
             ->orderBy('name')
             ->paginate(12);
 
@@ -75,6 +76,16 @@ class SubjectController extends Controller
 
     protected function authorizeSubject(Subject $subject): void
     {
-        abort_if($subject->guru_id !== Auth::id(), 403);
+        $user = Auth::user();
+        // Admin bisa akses semua subjects
+        if ($user->role === 'admin') {
+            return;
+        }
+        // Semua guru bisa akses semua subjects
+        if ($user->role === 'guru') {
+            return;
+        }
+        // Jika tidak memenuhi kondisi di atas, tolak akses
+        abort(403, 'Anda tidak memiliki izin untuk mengakses mata kuliah ini.');
     }
 }
