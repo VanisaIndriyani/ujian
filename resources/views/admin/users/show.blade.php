@@ -13,18 +13,18 @@
             <a href="{{ route('admin.users.index', ['role' => $user->role]) }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-emerald-200 text-emerald-600 hover:bg-emerald-50">&larr; Kembali</a>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-5">
+        <div class="gs="flex justify-between"><dt>Tingkat</dt><dd>{{ $user->classroom ?? '—' }}</dd></div>
+                    <div class="flex justify-between"><dt>Dibuat</dt><dd>{{ optional($user->created_at)->format('d M Y') }}</dd></div>
+                </dl>
+            </div>
+
+            <div class="md:col-span-2 bg-white border border-emerald-10rid md:grid-cols-3 gap-5">
             <div class="bg-white border border-emerald-100 rounded-2xl shadow p-6 space-y-3">
                 <h3 class="text-emerald-900 font-semibold">Informasi Akun</h3>
                 <dl class="text-sm text-emerald-700 space-y-2">
                     <div class="flex justify-between"><dt>Email</dt><dd>{{ $user->email ?? '—' }}</dd></div>
                     <div class="flex justify-between"><dt>{{ $user->role === 'guru' ? 'NIP' : 'NIM' }}</dt><dd>{{ $user->role === 'guru' ? ($user->nip ?? '—') : ($user->nisn ?? '—') }}</dd></div>
-                    <div class="flex justify-between"><dt>Kelas</dt><dd>{{ $user->classroom ?? '—' }}</dd></div>
-                    <div class="flex justify-between"><dt>Dibuat</dt><dd>{{ optional($user->created_at)->format('d M Y') }}</dd></div>
-                </dl>
-            </div>
-
-            <div class="md:col-span-2 bg-white border border-emerald-100 rounded-2xl shadow p-6">
+                    <div clas0 rounded-2xl shadow p-6">
                 @if ($user->role === 'guru')
                     <h3 class="text-emerald-900 font-semibold mb-3">Mata Kuliah Diampu</h3>
                     <div class="overflow-x-auto">

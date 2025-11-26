@@ -56,6 +56,7 @@ class ExamController extends Controller
 
         $data = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
+            'semester' => 'required|integer|min:1|max:8',
             'classroom' => 'required|exists:classrooms,name',
             'type' => 'nullable|in:UTS,UAS',
             'title' => 'required|string|max:255',
@@ -107,6 +108,7 @@ class ExamController extends Controller
 
         $data = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
+            'semester' => 'required|integer|min:1|max:8',
             'classroom' => 'required|exists:classrooms,name',
             'type' => 'nullable|in:UTS,UAS',
             'title' => 'required|string|max:255',

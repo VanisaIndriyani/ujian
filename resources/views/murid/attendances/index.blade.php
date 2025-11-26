@@ -26,23 +26,23 @@
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-purple-100 text-sm">
-<thead class="bg-emerald-50/60 text-emerald-600 uppercase text-xs tracking-wider">
+                <thead class="bg-emerald-50/60 text-emerald-600 uppercase text-xs tracking-wider">
                     <tr>
                         <th class="px-4 py-3 text-left">Tanggal</th>
                         <th class="px-4 py-3 text-left">Mata Kuliah</th>
                         <th class="px-4 py-3 text-left">Status</th>
-                       
+                        <th class="px-4 py-3 text-left">Bukti Kehadiran</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-purple-50">
                     @forelse ($attendances as $attendance)
-<tr class="hover:bg-emerald-50/40">
-<td class="px-4 py-3 text-emerald-600">{{ $attendance->attendance_date->format('d M Y') }}</td>
-<td class="px-4 py-3 text-emerald-600">{{ $attendance->subject?->name ?? '—' }}</td>
+                        <tr class="hover:bg-emerald-50/40">
+                            <td class="px-4 py-3 text-emerald-600">{{ $attendance->attendance_date->format('d M Y') }}</td>
+                            <td class="px-4 py-3 text-emerald-600">{{ $attendance->subject?->name ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
                                     @class([
-'bg-emerald-100 text-emerald-700' => $attendance->status === 'hadir',
+                                        'bg-emerald-100 text-emerald-700' => $attendance->status === 'hadir',
                                         'bg-yellow-100 text-yellow-700' => $attendance->status === 'izin',
                                         'bg-blue-100 text-blue-700' => $attendance->status === 'sakit',
                                         'bg-red-100 text-red-700' => $attendance->status === 'alpa',
@@ -50,11 +50,28 @@
                                     {{ strtoupper($attendance->status) }}
                                 </span>
                             </td>
-
+                            <td class="px-4 py-3">
+                                @if ($attendance->proof_path)
+                                    @php
+                                        $fileExists = \Illuminate\Support\Facades\Storage::disk('public')->exists($attendance->proof_path);
+                                        $url = $fileExists ? asset('storage/' . $attendance->proof_path) : null;
+                                    @endphp
+                                    @if ($url)
+                                        <a href="{{ $url }}" target="_blank" class="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700">
+                                            <i class="fa-solid fa-image"></i>
+                                            <span class="text-xs">Lihat Foto</span>
+                                        </a>
+                                    @else
+                                        <span class="text-xs text-emerald-400">Foto tidak ditemukan</span>
+                                    @endif
+                                @else
+                                    <span class="text-xs text-emerald-400">—</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-<td colspan="4" class="px-4 py-6 text-center text-emerald-400">Belum ada data kehadiran.</td>
+                            <td colspan="4" class="px-4 py-6 text-center text-emerald-400">Belum ada data kehadiran.</td>
                         </tr>
                     @endforelse
                 </tbody>

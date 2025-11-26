@@ -49,7 +49,7 @@
                             <th class="px-4 py-3 text-left">Nama</th>
                             <th class="px-4 py-3 text-left">Email</th>
                             <th class="px-4 py-3 text-left">NIP/NIM</th>
-                            <th class="px-4 py-3 text-left">Kelas</th>
+                            <th class="px-4 py-3 text-left">Tingkat</th>
                             <th class="px-4 py-3 text-left">Terdaftar</th>
                             <th class="px-4 py-3 text-right">Aksi</th>
                         </tr>

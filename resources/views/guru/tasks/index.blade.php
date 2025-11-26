@@ -24,6 +24,7 @@
                         <tr>
                             <th class="px-4 py-3 text-left">Judul</th>
                             <th class="px-4 py-3 text-left">Mata Kuliah</th>
+                            <th class="px-4 py-3 text-left">Semester</th>
                             <th class="px-4 py-3 text-left">Jurusan</th>
                             <th class="px-4 py-3 text-left">Tenggat</th>
                             <th class="px-4 py-3 text-left">Pengumpulan</th>
@@ -35,6 +36,7 @@
                             <tr class="hover:bg-emerald-50/40">
                                 <td class="px-4 py-3 font-medium text-emerald-900">{{ $task->title }}</td>
                                 <td class="px-4 py-3 text-emerald-600">{{ $task->subject?->name ?? '—' }}</td>
+                                <td class="px-4 py-3 text-emerald-600">{{ $task->semester ? 'Semester ' . $task->semester : '—' }}</td>
                                 <td class="px-4 py-3 text-emerald-600">{{ $task->classroom ?? 'Semua jurusan' }}</td>
                                 <td class="px-4 py-3 text-emerald-600">{{ optional($task->due_at)->format('d M Y H:i') ?? 'Tidak ditentukan' }}</td>
                                 <td class="px-4 py-3 text-emerald-600">
@@ -62,7 +64,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-6 text-center text-emerald-400">Belum ada tugas yang dibuat.</td>
+                                <td colspan="7" class="px-4 py-6 text-center text-emerald-400">Belum ada tugas yang dibuat.</td>
                             </tr>
                         @endforelse
                     </tbody>

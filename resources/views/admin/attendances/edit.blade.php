@@ -5,7 +5,7 @@
 
 @section('content')
     <div class="bg-white border border-emerald-100 rounded-2xl shadow p-6">
-        <form action="{{ route('admin.attendances.update', $attendance) }}" method="POST" class="space-y-6">
+        <form action="{{ route('admin.attendances.update', $attendance) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
             @method('PUT')
 
@@ -49,6 +49,18 @@
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-emerald-600">Catatan</label>
                     <textarea name="notes" rows="3" class="mt-1 w-full rounded-xl border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="Opsional...">{{ old('notes', $attendance->notes) }}</textarea>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-emerald-600">Bukti Kehadiran (Foto)</label>
+                    <input type="file" name="proof" accept="image/*" class="mt-1 w-full rounded-xl border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    @if ($attendance->proof_path)
+                        <div class="mt-3">
+                            <p class="text-xs text-emerald-500 mb-2">Bukti kehadiran saat ini:</p>
+                            <img src="{{ asset('storage/' . $attendance->proof_path) }}" alt="Bukti Kehadiran" class="max-w-xs rounded-lg border border-emerald-200">
+                        </div>
+                    @endif
+                    <p class="text-xs text-emerald-400 mt-1">Upload foto sebagai bukti kehadiran (opsional).</p>
                 </div>
             </div>
 

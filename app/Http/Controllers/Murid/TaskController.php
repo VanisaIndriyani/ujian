@@ -20,7 +20,7 @@ class TaskController extends Controller
         $status = $request->query('status'); // nilai: 'sudah' | 'belum' | null
 
         $assignments = Assignment::with(['subject', 'submissions' => function ($query) use ($murid) {
-            $query->where('student_id', $murid->id);
+            $query->where('student_id', $murid->id)->orderByDesc('submitted_at');
         }])
             ->where(function ($query) use ($murid, $subjectIds) {
                 // Tampilkan tugas untuk kelas murid, atau tugas semua kelas yang sesuai mata kuliah yang diikuti
@@ -44,7 +44,16 @@ class TaskController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('murid.tasks.index', compact('assignments', 'status'));
+        // Load submissions dengan score untuk setiap assignment
+        $assignmentIds = $assignments->pluck('id');
+        $scoredSubmissions = AssignmentSubmission::whereIn('assignment_id', $assignmentIds)
+            ->where('student_id', $murid->id)
+            ->whereNotNull('score')
+            ->orderByDesc('submitted_at')
+            ->get()
+            ->groupBy('assignment_id');
+
+        return view('murid.tasks.index', compact('assignments', 'status', 'scoredSubmissions'));
     }
 
     public function create(): View

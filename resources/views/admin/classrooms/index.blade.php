@@ -18,6 +18,7 @@
                 <thead class="bg-emerald-50/60 text-emerald-600 uppercase text-xs tracking-wider">
                     <tr>
                         <th class="px-4 py-3 text-left">Nama Jurusan</th>
+                        <th class="px-4 py-3 text-left">Semester</th>
                         <th class="px-4 py-3 text-right">Aksi</th>
                     </tr>
                 </thead>
@@ -25,6 +26,7 @@
                 @forelse ($classrooms as $classroom)
                     <tr class="hover:bg-emerald-50/40">
                         <td class="px-4 py-3 text-emerald-900 font-medium">{{ $classroom->name }}</td>
+                        <td class="px-4 py-3 text-emerald-600">{{ $classroom->semester ? 'Semester ' . $classroom->semester : '—' }}</td>
                         <td class="px-4 py-3 text-right space-x-2">
                             <a href="{{ route('admin.classrooms.show', $classroom) }}" class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-sky-100 text-sky-700 hover:bg-sky-200" title="Lihat">
                                 <i class="fa-solid fa-eye"></i>
@@ -46,7 +48,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="2" class="px-4 py-6 text-emerald-600">Belum ada Jurusan. Tambahkan Jurusan baru.</td>
+                        <td colspan="3" class="px-4 py-6 text-emerald-600">Belum ada Jurusan. Tambahkan Jurusan baru.</td>
                     </tr>
                 @endforelse
                 </tbody>

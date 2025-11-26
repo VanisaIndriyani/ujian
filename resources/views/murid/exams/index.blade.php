@@ -7,10 +7,11 @@
 <div class="bg-white border border-emerald-100 rounded-2xl shadow overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-purple-100 text-sm">
-<thead class="bg-emerald-50/60 text-emerald-600 uppercase text-xs tracking-wider">
+                <thead class="bg-emerald-50/60 text-emerald-600 uppercase text-xs tracking-wider">
                     <tr>
-<th class="px-4 py-3 text-left">Ujian Matakuliah</th>
+                        <th class="px-4 py-3 text-left">Ujian Matakuliah</th>
                         <th class="px-4 py-3 text-left">Mata Kuliah</th>
+                        <th class="px-4 py-3 text-left">Semester</th>
                         <th class="px-4 py-3 text-left">Jenis</th>
                         <th class="px-4 py-3 text-left">Jadwal</th>
                         <th class="px-4 py-3 text-left">Nilai Anda</th>
@@ -22,10 +23,11 @@
                         @php
                             $result = $exam->results->first();
                         @endphp
-<tr class="hover:bg-emerald-50/40">
-<td class="px-4 py-3 font-medium text-emerald-900">{{ $exam->title }}</td>
-<td class="px-4 py-3 text-emerald-600">{{ $exam->subject?->name ?? '—' }}</td>
-<td class="px-4 py-3 text-emerald-600">{{ $exam->type ?? '—' }}</td>
+                        <tr class="hover:bg-emerald-50/40">
+                            <td class="px-4 py-3 font-medium text-emerald-900">{{ $exam->title }}</td>
+                            <td class="px-4 py-3 text-emerald-600">{{ $exam->subject?->name ?? '—' }}</td>
+                            <td class="px-4 py-3 text-emerald-600">{{ $exam->semester ? 'Semester ' . $exam->semester : '—' }}</td>
+                            <td class="px-4 py-3 text-emerald-600">{{ $exam->type ?? '—' }}</td>
 <td class="px-4 py-3 text-emerald-600">
                                 {{ optional($exam->start_at)->format('d M Y H:i') ?? '—' }}<br>
 <span class="text-xs text-emerald-400">s/d {{ optional($exam->end_at)->format('d M Y H:i') ?? '—' }}</span>
@@ -45,7 +47,7 @@
                         </tr>
                     @empty
                         <tr>
-<td colspan="5" class="px-4 py-6 text-center text-emerald-400">Belum ada ujian matakuliah tersedia.</td>
+                            <td colspan="6" class="px-4 py-6 text-center text-emerald-400">Belum ada ujian matakuliah tersedia.</td>
                         </tr>
                     @endforelse
                 </tbody>

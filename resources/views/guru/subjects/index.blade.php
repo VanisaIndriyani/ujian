@@ -20,20 +20,22 @@ class="inline-flex items-center justify-center p-2 rounded-lg bg-emerald-600 tex
 <div class="bg-white border border-emerald-100 rounded-2xl shadow overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-emerald-100 text-sm">
-<thead class="bg-emerald-50/60 text-emerald-600 uppercase text-xs tracking-wider">
+                    <thead class="bg-emerald-50/60 text-emerald-600 uppercase text-xs tracking-wider">
                         <tr>
-                            <th class="px-4 py-3 text-left">Kode</th>
-                            <th class="px-4 py-3 text-left">Nama</th>
-                            <th class="px-4 py-3 text-left">Deskripsi</th>
+                            <th class="px-4 py-3 text-left">Kode Mata Kuliah</th>
+                            <th class="px-4 py-3 text-left">Nama Mata Kuliah</th>
+                            <th class="px-4 py-3 text-left">Semester</th>
+                            <th class="px-4 py-3 text-left">Jumlah SKS</th>
                             <th class="px-4 py-3 text-left">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-emerald-50">
                         @forelse ($subjects as $subject)
                             <tr>
-<td class="px-4 py-3 text-emerald-900">{{ $subject->code }}</td>
-<td class="px-4 py-3 text-emerald-900">{{ $subject->name }}</td>
-<td class="px-4 py-3 text-emerald-700">{{ $subject->description }}</td>
+                                <td class="px-4 py-3 text-emerald-900">{{ $subject->code }}</td>
+                                <td class="px-4 py-3 text-emerald-900">{{ $subject->name }}</td>
+                                <td class="px-4 py-3 text-emerald-700">{{ $subject->semester ? 'Semester ' . $subject->semester : '—' }}</td>
+                                <td class="px-4 py-3 text-emerald-700">{{ $subject->sks ?? '—' }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-2">
                                         <a href="{{ route('guru.subjects.edit', $subject) }}" title="Edit" aria-label="Edit"
@@ -55,7 +57,7 @@ class="inline-flex items-center justify-center p-2 rounded-lg bg-emerald-500 tex
                             </tr>
                         @empty
                             <tr>
-<td colspan="4" class="px-4 py-6 text-center text-emerald-600">Belum ada mata kuliah.</td>
+                                <td colspan="5" class="px-4 py-6 text-center text-emerald-600">Belum ada mata kuliah.</td>
                             </tr>
                         @endforelse
                     </tbody>

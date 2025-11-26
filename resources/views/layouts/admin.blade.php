@@ -46,6 +46,7 @@
                 <div>
                     <p class="text-xs uppercase tracking-widest text-emerald-200">Sistem Akademik</p>
                     <p class="text-lg font-semibold">Teknik Radiologi Pencitraan</p>
+                    <p class="text-xs text-emerald-200 mt-1">STIKES DIAN HUSADA MOJOKERTO</p>
                 </div>
             </div>
             <nav class="flex-1 p-4 space-y-1 overflow-y-auto">

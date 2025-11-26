@@ -19,11 +19,12 @@
         <div class="bg-white border border-emerald-100 rounded-2xl shadow overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-emerald-100 text-sm">
-<thead class="bg-emerald-50/60 text-emerald-600 uppercase text-xs tracking-wider">
+                    <thead class="bg-emerald-50/60 text-emerald-600 uppercase text-xs tracking-wider">
                         <tr>
                             <th class="px-4 py-3 text-left">Jurusan</th>
                             <th class="px-4 py-3 text-left">Judul</th>
                             <th class="px-4 py-3 text-left">Mata Kuliah</th>
+                            <th class="px-4 py-3 text-left">Semester</th>
                             <th class="px-4 py-3 text-left">Mulai</th>
                             <th class="px-4 py-3 text-left">Selesai</th>
                           
@@ -32,12 +33,13 @@
                     </thead>
                 <tbody class="divide-y divide-emerald-50">
                         @forelse ($exams as $exam)
-<tr class="hover:bg-emerald-50/40">
-<td class="px-4 py-3 text-emerald-600">{{ $exam->classroom ?? '—' }}</td>
-<td class="px-4 py-3 font-medium text-emerald-900">{{ $exam->title }}</td>
-<td class="px-4 py-3 text-emerald-600">{{ $exam->subject?->name ?? '—' }}</td>
-<td class="px-4 py-3 text-emerald-600">{{ optional($exam->start_at)->format('d M Y H:i') ?? '—' }}</td>
-<td class="px-4 py-3 text-emerald-600">{{ optional($exam->end_at)->format('d M Y H:i') ?? '—' }}</td>
+                            <tr class="hover:bg-emerald-50/40">
+                                <td class="px-4 py-3 text-emerald-600">{{ $exam->classroom ?? '—' }}</td>
+                                <td class="px-4 py-3 font-medium text-emerald-900">{{ $exam->title }}</td>
+                                <td class="px-4 py-3 text-emerald-600">{{ $exam->subject?->name ?? '—' }}</td>
+                                <td class="px-4 py-3 text-emerald-600">{{ $exam->semester ? 'Semester ' . $exam->semester : '—' }}</td>
+                                <td class="px-4 py-3 text-emerald-600">{{ optional($exam->start_at)->format('d M Y H:i') ?? '—' }}</td>
+                                <td class="px-4 py-3 text-emerald-600">{{ optional($exam->end_at)->format('d M Y H:i') ?? '—' }}</td>
 
 <td class="px-4 py-3 text-emerald-600">
     <div class="flex items-center gap-2">
@@ -59,7 +61,7 @@
                             </tr>
                         @empty
                             <tr>
-<td colspan="6" class="px-4 py-6 text-center text-emerald-400">Belum ada jadwal ujian matakuliah.</td>
+                                <td colspan="7" class="px-4 py-6 text-center text-emerald-400">Belum ada jadwal ujian matakuliah.</td>
                             </tr>
                         @endforelse
                     </tbody>

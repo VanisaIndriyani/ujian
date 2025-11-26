@@ -41,6 +41,7 @@ class TaskController extends Controller
 
         $data = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
+            'semester' => 'required|integer|min:1|max:8',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'due_at' => 'nullable|date',
@@ -86,6 +87,7 @@ class TaskController extends Controller
 
         $data = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
+            'semester' => 'required|integer|min:1|max:8',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'due_at' => 'nullable|date',

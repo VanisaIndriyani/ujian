@@ -42,7 +42,11 @@
                     <tbody class="divide-y divide-purple-50">
                         @forelse ($assignments as $assignment)
                             @php
-                                $submission = $assignment->submissions->first();
+                                // Prioritas: ambil submission yang sudah dinilai (punya score) dulu
+                                $scoredSub = $scoredSubmissions[$assignment->id] ?? collect();
+                                $submissionWithScore = $scoredSub->first();
+                                // Jika tidak ada yang sudah dinilai, ambil submission terbaru dari relasi
+                                $submission = $submissionWithScore ?? $assignment->submissions->where('student_id', auth()->id())->first();
                                 $isLate = $assignment->due_at && now()->gt($assignment->due_at);
                             @endphp
 <tr class="hover:bg-emerald-50/40">

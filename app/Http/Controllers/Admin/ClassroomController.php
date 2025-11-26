@@ -26,6 +26,7 @@ class ClassroomController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:100|unique:classrooms,name',
+            'semester' => 'required|integer|min:1|max:8',
         ]);
 
         Classroom::create($data);
@@ -55,6 +56,7 @@ class ClassroomController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:100|unique:classrooms,name,' . $classroom->id,
+            'semester' => 'required|integer|min:1|max:8',
         ]);
 
         $classroom->update($data);

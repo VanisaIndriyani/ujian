@@ -41,6 +41,7 @@
                             <th class="px-4 py-3 text-left">Mata Kuliah</th>
                             <th class="px-4 py-3 text-left">Status</th>
                             <th class="px-4 py-3 text-left">Catatan</th>
+                            <th class="px-4 py-3 text-left">Bukti Kehadiran</th>
                             <th class="px-4 py-3 text-right">Aksi</th>
                         </tr>
                     </thead>
@@ -64,6 +65,24 @@
                                 </td>
                                 <td class="px-4 py-3 text-emerald-600">{{ $attendance->notes ?? '—' }}</td>
                                 <td class="px-4 py-3">
+                                    @if ($attendance->proof_path)
+                                        @php
+                                            $fileExists = Storage::disk('public')->exists($attendance->proof_path);
+                                            $url = $fileExists ? asset('storage/' . $attendance->proof_path) : null;
+                                        @endphp
+                                        @if ($url)
+                                            <a href="{{ $url }}" target="_blank" class="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700">
+                                                <i class="fa-solid fa-image"></i>
+                                                <span class="text-xs">Lihat Foto</span>
+                                            </a>
+                                        @else
+                                            <span class="text-xs text-emerald-400">Foto tidak ditemukan</span>
+                                        @endif
+                                    @else
+                                        <span class="text-xs text-emerald-400">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3">
                                     <div class="flex justify-end gap-2">
                                         <a href="{{ route('guru.attendances.edit', $attendance) }}" title="Ubah" aria-label="Ubah" class="inline-flex items-center justify-center p-2 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200">
                                             <i class="fa-solid fa-pen-to-square"></i>
@@ -73,7 +92,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-6 text-center text-emerald-400">Belum ada data absensi.</td>
+                                <td colspan="8" class="px-4 py-6 text-center text-emerald-400">Belum ada data absensi.</td>
                             </tr>
                         @endforelse
                     </tbody>

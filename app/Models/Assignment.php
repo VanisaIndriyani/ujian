@@ -16,6 +16,7 @@ class Assignment extends Model
         'title',
         'description',
         'due_at',
+        'semester',
     ];
 
     protected $casts = [

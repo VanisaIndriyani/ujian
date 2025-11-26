@@ -22,10 +22,11 @@
                 <table class="min-w-full divide-y divide-emerald-100 text-sm">
                     <thead class="bg-emerald-50/60 text-emerald-600 uppercase text-xs tracking-wider">
                         <tr>
-                            <th class="px-4 py-3 text-left">Kode</th>
-<th class="px-4 py-3 text-left">Nama Mata Kuliah</th>
+                            <th class="px-4 py-3 text-left">Kode Mata Kuliah</th>
+                            <th class="px-4 py-3 text-left">Nama Mata Kuliah</th>
+                            <th class="px-4 py-3 text-left">Semester</th>
+                            <th class="px-4 py-3 text-left">Jumlah SKS</th>
                             <th class="px-4 py-3 text-left">Dosen Pengampu</th>
-                            <th class="px-4 py-3 text-left">Deskripsi</th>
                             <th class="px-4 py-3 text-right">Aksi</th>
                         </tr>
                     </thead>
@@ -34,10 +35,9 @@
                             <tr class="hover:bg-emerald-50/40">
                                 <td class="px-4 py-3 font-mono text-xs text-emerald-500">{{ $subject->code }}</td>
                                 <td class="px-4 py-3 font-medium text-emerald-900">{{ $subject->name }}</td>
+                                <td class="px-4 py-3 text-emerald-600">{{ $subject->semester ? 'Semester ' . $subject->semester : '—' }}</td>
+                                <td class="px-4 py-3 text-emerald-600">{{ $subject->sks ?? '—' }}</td>
                                 <td class="px-4 py-3 text-emerald-600">{{ $subject->guru?->name ?? 'Belum ditentukan' }}</td>
-                                <td class="px-4 py-3 text-emerald-600 max-w-md">
-                                    <p class="truncate">{{ $subject->description ?? '—' }}</p>
-                                </td>
                                 <td class="px-4 py-3">
                                     <div class="flex justify-end gap-2">
                                         <a href="{{ route('admin.subjects.edit', $subject) }}" title="Ubah" aria-label="Ubah" class="inline-flex items-center justify-center p-2 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200">
@@ -55,7 +55,7 @@
                             </tr>
                         @empty
                             <tr>
-<td colspan="5" class="px-4 py-6 text-center text-emerald-400">Belum ada data mata kuliah.</td>
+                                <td colspan="6" class="px-4 py-6 text-center text-emerald-400">Belum ada data mata kuliah.</td>
                             </tr>
                         @endforelse
                     </tbody>

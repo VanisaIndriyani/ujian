@@ -35,7 +35,8 @@
                     <img src="{{ asset('img/logo.png') }}" alt="Logo Radiologi" class="h-20 w-20 rounded-full bg-white/90 p-1 shadow-lg">
                     <div>
                         <p class="text-sm uppercase tracking-widest text-emerald-100">Teknik Radiologi Pencitraan</p>
-                        <h2 class="text-2xl font-semibold">Sistem Akademik Terpadu</h2>
+                        <p class="text-xs text-emerald-100 mt-1">STIKES DIAN HUSADA MOJOKERTO</p>
+                        <h2 class="text-2xl font-semibold mt-2">Sistem Akademik Terpadu</h2>
                     </div>
                 </div>
             </div>
@@ -45,7 +46,8 @@
                 <img src="{{ asset('img/logo.png') }}" alt="Logo Radiologi" class="h-12 w-12 rounded-full bg-white shadow">
                 <div>
                     <p class="text-xs uppercase tracking-widest text-emerald-600">Teknik Radiologi Pencitraan</p>
-                    <h1 class="text-base font-semibold text-slate-800">Sistem Akademik Terpadu</h1>
+                    <p class="text-xs text-emerald-600 mt-1">STIKES DIAN HUSADA MOJOKERTO</p>
+                    <h1 class="text-base font-semibold text-slate-800 mt-2">Sistem Akademik Terpadu</h1>
                 </div>
             </div>
             <h2 class="text-xl font-semibold text-slate-800 mb-6">Masuk ke Akun</h2>

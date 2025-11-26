@@ -31,7 +31,8 @@ class SubjectController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:subjects,code',
-            'description' => 'nullable|string',
+            'semester' => 'required|integer|min:1|max:8',
+            'sks' => 'required|integer|min:1|max:10',
         ]);
 
         Subject::create($data + [
@@ -56,7 +57,8 @@ class SubjectController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:subjects,code,' . $subject->id,
-            'description' => 'nullable|string',
+            'semester' => 'required|integer|min:1|max:8',
+            'sks' => 'required|integer|min:1|max:10',
         ]);
 
         $subject->update($data);

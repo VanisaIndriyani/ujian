@@ -79,11 +79,20 @@
                                 </td>
                                 <td class="px-4 py-4 text-emerald-600 w-36">
                                     @if ($submission->file_path)
-                                        <a href="{{ Storage::disk('public')->url($submission->file_path) }}"
-                                           target="_blank"
-                                           class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-xs font-medium">
-                                            📎 Unduh Berkas
-                                        </a>
+                                        @php
+                                            $normalized = preg_replace('#^(storage/|public/)#', '', ltrim($submission->file_path, '/'));
+                                            $fileExists = \Illuminate\Support\Facades\Storage::disk('public')->exists($normalized);
+                                            $url = $fileExists ? asset('storage/' . $normalized) : null;
+                                        @endphp
+                                        @if ($url)
+                                            <a href="{{ $url }}"
+                                               target="_blank"
+                                               class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-xs font-medium">
+                                                📎 Unduh Berkas
+                                            </a>
+                                        @else
+                                            <span class="text-xs text-emerald-400">Berkas tidak ditemukan.</span>
+                                        @endif
                                     @else
                                         <span class="text-xs text-emerald-400">Tidak ada berkas.</span>
                                     @endif

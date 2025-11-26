@@ -8,6 +8,7 @@ use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class AttendanceController extends Controller
@@ -69,7 +70,17 @@ class AttendanceController extends Controller
             'attendance_date' => 'required|date',
             'status' => 'required|in:hadir,izin,sakit,alpa',
             'notes' => 'nullable|string',
+            'proof' => 'nullable|image|max:2048',
         ]);
+
+        // Handle upload foto bukti kehadiran
+        if ($request->hasFile('proof')) {
+            // Hapus foto lama jika ada
+            if ($attendance->proof_path) {
+                Storage::disk('public')->delete($attendance->proof_path);
+            }
+            $data['proof_path'] = $request->file('proof')->store('attendance_proofs', 'public');
+        }
 
         $attendance->update($data + [
             'recorded_by' => $request->user()->id,

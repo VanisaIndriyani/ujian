@@ -12,6 +12,16 @@
     </div>
 
     <div>
+        <label class="block text-sm font-medium text-emerald-600">Semester</label>
+        <select name="semester" class="mt-1 w-full rounded-xl border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent" required>
+            <option value="">— Pilih Semester —</option>
+            @for ($i = 1; $i <= 8; $i++)
+                <option value="{{ $i }}" {{ (int) old('semester', $exam->semester ?? 0) === $i ? 'selected' : '' }}>Semester {{ $i }}</option>
+            @endfor
+        </select>
+    </div>
+
+    <div>
         <label class="block text-sm font-medium text-emerald-600">Jenis Ujian</label>
         <select name="type" class="mt-1 w-full rounded-xl border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
             <option value="">— Pilih Jenis —</option>

@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class AttendanceController extends Controller
@@ -82,6 +83,7 @@ class AttendanceController extends Controller
             'status.*' => 'in:hadir,izin,sakit,alpa',
             'status_default' => 'nullable|in:hadir,izin,sakit,alpa',
             'notes' => 'nullable|string',
+            'proof' => 'nullable|image|max:2048',
         ]);
 
         abort_if(!$guru->subjectsTeaching()->where('subjects.id', $validated['subject_id'])->exists(), 403);
@@ -91,6 +93,12 @@ class AttendanceController extends Controller
         $notes = $validated['notes'] ?? null;
         $statusMap = $validated['status'] ?? [];
         $statusDefault = $validated['status_default'] ?? 'hadir';
+
+        // Handle upload foto bukti kehadiran (satu foto untuk semua mahasiswa)
+        $proofPath = null;
+        if ($request->hasFile('proof')) {
+            $proofPath = $request->file('proof')->store('attendance_proofs', 'public');
+        }
 
         foreach ($validated['student_ids'] as $studentId) {
             $status = $statusMap[$studentId] ?? $statusDefault;
@@ -106,6 +114,7 @@ class AttendanceController extends Controller
                     'attendance_date' => $date,
                     'status' => $status,
                     'notes' => $notes,
+                    'proof_path' => $proofPath,
                     'recorded_by' => $guru->id,
                 ]
             );
@@ -131,7 +140,17 @@ class AttendanceController extends Controller
         $data = $request->validate([
             'status' => 'required|in:hadir,izin,sakit,alpa',
             'notes' => 'nullable|string',
+            'proof' => 'nullable|image|max:2048',
         ]);
+
+        // Handle upload foto bukti kehadiran
+        if ($request->hasFile('proof')) {
+            // Hapus foto lama jika ada
+            if ($attendance->proof_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($attendance->proof_path);
+            }
+            $data['proof_path'] = $request->file('proof')->store('attendance_proofs', 'public');
+        }
 
         $attendance->update($data);
 

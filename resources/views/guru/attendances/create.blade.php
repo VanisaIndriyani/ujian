@@ -36,7 +36,7 @@
         </form>
 
         @if (!empty($subjectId) && $students->count() > 0)
-            <form action="{{ route('guru.attendances.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('guru.attendances.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 <input type="hidden" name="subject_id" value="{{ $subjectId }}">
 
@@ -57,6 +57,12 @@
                         <label class="block text-sm font-medium text-emerald-600">Catatan (Opsional)</label>
                         <input type="text" name="notes" value="{{ old('notes') }}" class="mt-1 w-full rounded-xl border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="Misal: Pertemuan ke-3">
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-emerald-600">Bukti Kehadiran (Foto) - Opsional</label>
+                    <input type="file" name="proof" accept="image/*" class="mt-1 w-full rounded-xl border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    <p class="text-xs text-emerald-400 mt-1">Upload foto sebagai bukti kehadiran untuk semua mahasiswa yang dicatat.</p>
                 </div>
 
                 <div class="overflow-x-auto">

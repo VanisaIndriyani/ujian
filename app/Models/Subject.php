@@ -14,6 +14,8 @@ class Subject extends Model
         'code',
         'description',
         'guru_id',
+        'semester',
+        'sks',
     ];
 
     public function guru()

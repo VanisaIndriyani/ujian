@@ -20,6 +20,7 @@ class Exam extends Model
         'material_path',
         'start_at',
         'end_at',
+        'semester',
     ];
 
     protected $casts = [

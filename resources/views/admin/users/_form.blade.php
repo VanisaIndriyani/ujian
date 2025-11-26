@@ -26,8 +26,8 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-emerald-600">NIP (Guru)</label>
-        <input type="text" name="nip" value="{{ old('nip', $user->nip ?? '') }}" class="mt-1 w-full rounded-xl border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="Isi untuk role guru">
+        <label class="block text-sm font-medium text-emerald-600">NIP (Dosen)</label>
+        <input type="text" name="nip" value="{{ old('nip', $user->nip ?? '') }}" class="mt-1 w-full rounded-xl border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="Isi untuk role dosen">
     </div>
 
     <div>
@@ -36,9 +36,9 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-emerald-600">Kelas (Mahasiswa)</label>
+        <label class="block text-sm font-medium text-emerald-600">Tingkat (Mahasiswa)</label>
         <select name="classroom" class="mt-1 w-full rounded-xl border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-            <option value="">— Pilih Kelas —</option>
+            <option value="">— Pilih Tingkat —</option>
             @isset($classrooms)
                 @foreach ($classrooms as $room)
                     <option value="{{ $room->name }}" {{ old('classroom', $user->classroom ?? '') === $room->name ? 'selected' : '' }}>
