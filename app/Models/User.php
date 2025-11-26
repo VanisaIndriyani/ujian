@@ -61,8 +61,13 @@ class User extends Authenticatable
         $path = $this->getAttribute('photo_path');
         if ($path) {
             try {
-                // Use relative URL to avoid APP_URL/port mismatch in dev
-                return '/storage/' . ltrim($path, '/');
+                // Normalize path: remove leading slashes and 'storage/' or 'public/' prefix
+                $normalized = preg_replace('#^(storage/|public/)#', '', ltrim($path, '/'));
+                // Check if file exists
+                if (Storage::disk('public')->exists($normalized)) {
+                    // Use asset() helper to handle subfolder deployments correctly
+                    return asset('storage/' . $normalized);
+                }
             } catch (\Throwable $e) {
                 // fall through to other strategies
             }
