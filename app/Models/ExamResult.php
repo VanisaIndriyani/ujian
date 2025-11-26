@@ -18,10 +18,12 @@ class ExamResult extends Model
         'submitted_at',
         'answer_path',
         'answer_text',
+        'answers_json',
     ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
+        'answers_json' => 'array',
     ];
 
     public function exam()

@@ -18,6 +18,8 @@ class Exam extends Model
         'description',
         'question_url',
         'material_path',
+        'questions_json',
+        'answer_key_json',
         'start_at',
         'end_at',
         'semester',
@@ -26,6 +28,8 @@ class Exam extends Model
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
+        'questions_json' => 'array',
+        'answer_key_json' => 'array',
     ];
 
     public function subject()

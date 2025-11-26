@@ -54,9 +54,96 @@
                     @endif
                 </p>
             </div>
-<div class="border-t border-emerald-100 pt-4 text-sm text-emerald-600 leading-relaxed">
+            <div class="border-t border-emerald-100 pt-4 text-sm text-emerald-600 leading-relaxed">
 {!! nl2br(e($exam->description ?? 'Tidak ada deskripsi ujian matakuliah.')) !!}
             </div>
+
+            @php
+                $questions = $exam->questions_json ?? [];
+                $answerKey = $exam->answer_key_json ?? [];
+                $hasMultipleChoice = !empty($questions) && !empty($answerKey);
+                $examLocked = isset($result) && in_array($result->status ?? null, ['submitted','auto_finished','finished']);
+                $studentAnswers = $result->answers_json ?? [];
+            @endphp
+
+            @if ($hasMultipleChoice)
+                <div class="border-t border-emerald-100 pt-4 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs uppercase tracking-wide text-emerald-400">Soal Pilihan Ganda</p>
+                        @if($examLocked && $result->score !== null)
+                            <p class="text-sm font-semibold text-emerald-700">Nilai: {{ number_format($result->score, 2) }}</p>
+                        @endif
+                    </div>
+
+                    @if(!$examLocked)
+                        <div id="mc-exam-intro" class="rounded-xl bg-emerald-50 border border-emerald-100 p-4 space-y-3">
+                            <p class="text-sm text-emerald-700">Mode Ujian Pilihan Ganda</p>
+                            <p class="text-xs text-emerald-600">Sistem akan meminta layar penuh dan memantau aktivitas Anda selama ujian. Jangan keluar dari halaman ini sampai selesai.</p>
+                            <button type="button" id="btn-start-mc-exam" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm shadow hover:bg-emerald-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M5 3l14 9-14 9V3z"/></svg>
+                                Mulai Ujian
+                            </button>
+                        </div>
+                    @endif
+                    
+                    <form id="multiple-choice-form" method="POST" action="{{ route('murid.exams.finish', $exam) }}" class="space-y-4 {{ !$examLocked ? 'hidden' : '' }}" id="mc-exam-wrapper">
+                        @csrf
+                        @foreach($questions as $index => $question)
+                            <div class="border border-emerald-200 rounded-lg p-4 bg-white">
+                                <div class="mb-3">
+                                    <p class="text-sm font-medium text-emerald-900 mb-2">
+                                        <span class="inline-block w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold flex items-center justify-center mr-2">{{ $index + 1 }}</span>
+                                        {{ $question['question'] ?? '' }}
+                                    </p>
+                                </div>
+                                <div class="space-y-2">
+                                    @foreach(['A', 'B', 'C', 'D'] as $option)
+                                        @php
+                                            $optionText = $question['options'][$option] ?? '';
+                                            $isChecked = isset($studentAnswers[$index]) && $studentAnswers[$index] === $option;
+                                            $isCorrect = ($answerKey[$index] ?? '') === $option;
+                                            $isWrong = $isChecked && !$isCorrect;
+                                        @endphp
+                                        <label class="flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors
+                                            @if($examLocked)
+                                                @if($isCorrect) bg-emerald-50 border-emerald-500
+                                                @elseif($isWrong) bg-red-50 border-red-300
+                                                @else border-emerald-200
+                                                @endif
+                                            @else
+                                                hover:bg-emerald-50 border-emerald-200
+                                            @endif
+                                            {{ $isChecked ? 'bg-emerald-50' : '' }}">
+                                            <input type="radio" 
+                                                   name="answers[{{ $index }}]" 
+                                                   value="{{ $option }}"
+                                                   {{ $isChecked ? 'checked' : '' }}
+                                                   {{ $examLocked ? 'disabled' : '' }}
+                                                   class="mt-1">
+                                            <div class="flex-1">
+                                                <span class="font-medium text-emerald-700">{{ $option }}.</span>
+                                                <span class="text-sm text-emerald-900 ml-2">{{ $optionText }}</span>
+                                                @if($examLocked && $isCorrect)
+                                                    <span class="ml-2 text-xs text-emerald-600 font-medium">✓ Benar</span>
+                                                @elseif($examLocked && $isWrong)
+                                                    <span class="ml-2 text-xs text-red-600 font-medium">✗ Salah</span>
+                                                @endif
+                                            </div>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                        
+                        @if(!$examLocked)
+                            <div class="flex items-center justify-end gap-2 pt-4 border-t border-emerald-100">
+                                <button type="button" id="btn-exit-mc-exam" class="px-4 py-2 rounded-lg border border-emerald-200 text-emerald-600 hover:bg-emerald-50">Batal</button>
+                                <button type="submit" id="btn-finish-mc-exam" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium shadow hover:bg-emerald-700">Selesai & Lihat Nilai</button>
+                            </div>
+                        @endif
+                    </form>
+                </div>
+            @endif
 
             @if ($exam->material_path)
                 <div class="border-t border-emerald-100 pt-4 space-y-3">
@@ -620,6 +707,232 @@
                         } catch (e) { warn('Terjadi kesalahan saat mengunduh DOCX.'); }
                     });
                 }
+                // Handle Multiple Choice Exam Security
+                const mcExamIntro = document.getElementById('mc-exam-intro');
+                const mcExamWrapper = document.getElementById('mc-exam-wrapper');
+                const btnStartMcExam = document.getElementById('btn-start-mc-exam');
+                let mcExamActive = false;
+                let mcViolations = 0;
+                const MC_VIOLATION_THRESHOLD = 1;
+
+                if (btnStartMcExam && !locked) {
+                    btnStartMcExam.addEventListener('click', function() {
+                        if (confirm('Ujian akan dimulai dalam mode layar penuh. Jangan keluar dari halaman ini sampai selesai. Lanjutkan?')) {
+                            startMcExam();
+                        }
+                    });
+                }
+
+                function startMcExam() {
+                    mcExamActive = true;
+                    mcViolations = 0;
+                    
+                    // Request fullscreen
+                    const el = document.documentElement;
+                    if (el.requestFullscreen) {
+                        el.requestFullscreen().catch(() => {
+                            alert('Gagal masuk ke mode layar penuh. Pastikan izinkan fullscreen.');
+                        });
+                    }
+                    
+                    // Hide intro, show form
+                    if (mcExamIntro) mcExamIntro.classList.add('hidden');
+                    if (mcExamWrapper) mcExamWrapper.classList.remove('hidden');
+                    
+                    // Warn user
+                    warn('Ujian dimulai. Jangan keluar dari halaman ini!');
+                }
+
+                function exitMcExam() {
+                    mcExamActive = false;
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+
+                // Detect violations for MC exam
+                if (!locked) {
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.hidden && mcExamActive) {
+                            mcViolations++;
+                            console.warn('MC Exam focus lost. Violations:', mcViolations);
+                            warn('Fokus hilang dari halaman ujian. Harap tetap di sini.');
+                            if (mcViolations >= MC_VIOLATION_THRESHOLD) {
+                                autoFinishMcExam();
+                            }
+                        }
+                    });
+
+                    window.addEventListener('blur', () => {
+                        if (mcExamActive) {
+                            mcViolations++;
+                            console.warn('MC Exam window blurred. Violations:', mcViolations);
+                            warn('Jendela kehilangan fokus saat ujian.');
+                            if (mcViolations >= MC_VIOLATION_THRESHOLD) {
+                                autoFinishMcExam();
+                            }
+                        }
+                    });
+
+                    document.addEventListener('fullscreenchange', () => {
+                        if (!document.fullscreenElement && mcExamActive) {
+                            mcViolations++;
+                            warn('Keluar dari layar penuh saat ujian.');
+                            if (mcViolations >= MC_VIOLATION_THRESHOLD) {
+                                autoFinishMcExam();
+                            }
+                        }
+                    });
+
+                    // Block right click for MC exam
+                    window.addEventListener('contextmenu', (e) => {
+                        if (mcExamActive) {
+                            e.preventDefault();
+                            warn('Klik kanan dinonaktifkan selama ujian.');
+                        }
+                    });
+
+                    // Block keyboard shortcuts for MC exam
+                    window.addEventListener('keydown', (e) => {
+                        if (!mcExamActive) return;
+                        const key = e.key.toLowerCase();
+                        const combo = {
+                            ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey, meta: e.metaKey
+                        };
+                        const blocked = (
+                            key === 'f12' ||
+                            (combo.ctrl && ['c','v','x','s','p','f','u','t','w','n'].includes(key)) ||
+                            (combo.ctrl && combo.shift && ['i','c','j','t','n'].includes(key)) ||
+                            (combo.ctrl && key === 'tab') ||
+                            (combo.alt && ['tab','f4'].includes(key))
+                        );
+                        if (blocked) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            warn('Pintasan keyboard dinonaktifkan selama ujian.');
+                        }
+                    }, { capture: true });
+
+                    // Prevent leaving page
+                    window.addEventListener('beforeunload', (e) => {
+                        if (mcExamActive) {
+                            e.preventDefault();
+                            e.returnValue = '';
+                            return '';
+                        }
+                    });
+                }
+
+                async function autoFinishMcExam() {
+                    if (!mcExamActive) return;
+                    mcExamActive = false;
+                    try {
+                        await fetch(autoFinishUrl, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': csrf,
+                                'Accept': 'application/json',
+                            },
+                        });
+                    } catch (e) {}
+                    exitMcExam();
+                    warn('Ujian otomatis selesai karena melanggar aturan. Nilai dikosongkan.');
+                    if (mcExamWrapper) {
+                        const banner = document.createElement('div');
+                        banner.className = 'rounded-xl bg-red-50 border border-red-100 p-4 mb-4';
+                        banner.innerHTML = '<p class="text-sm text-red-700">Ujian telah berakhir otomatis karena Anda melanggar aturan ujian.</p>';
+                        mcExamWrapper.insertBefore(banner, mcExamWrapper.firstChild);
+                    }
+                    if (btnStartMcExam) {
+                        btnStartMcExam.disabled = true;
+                        btnStartMcExam.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+                }
+
+                // Exit button for MC exam
+                const btnExitMcExam = document.getElementById('btn-exit-mc-exam');
+                if (btnExitMcExam) {
+                    btnExitMcExam.addEventListener('click', function() {
+                        if (confirm('Yakin ingin keluar dari ujian? Ujian akan diakhiri.')) {
+                            exitMcExam();
+                            if (mcExamIntro) mcExamIntro.classList.remove('hidden');
+                            if (mcExamWrapper) mcExamWrapper.classList.add('hidden');
+                            mcExamActive = false;
+                        }
+                    });
+                }
+
+                // Handle form pilihan ganda
+                const multipleChoiceForm = document.getElementById('multiple-choice-form');
+                if (multipleChoiceForm && !{{ $examLocked ? 'true' : 'false' }}) {
+                    multipleChoiceForm.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        
+                        if (finishedOnce || !mcExamActive) return;
+                        
+                        // Confirm before finishing
+                        if (!confirm('Yakin ingin menyelesaikan ujian? Setelah selesai, Anda tidak bisa mengubah jawaban.')) {
+                            return;
+                        }
+                        
+                        const formData = new FormData(this);
+                        const answers = {};
+                        formData.forEach((value, key) => {
+                            if (key.startsWith('answers[')) {
+                                const match = key.match(/answers\[(\d+)\]/);
+                                if (match) {
+                                    answers[match[1]] = value;
+                                }
+                            }
+                        });
+                        
+                        // Validasi semua soal sudah dijawab
+                        const totalQuestions = {{ count($questions) }};
+                        const answeredCount = Object.keys(answers).length;
+                        if (answeredCount < totalQuestions) {
+                            if (!confirm('Anda belum menjawab semua soal (' + answeredCount + '/' + totalQuestions + '). Yakin ingin menyelesaikan ujian?')) {
+                                return;
+                            }
+                        }
+                        
+                        finishedOnce = true;
+                        
+                        try {
+                            const submitData = new FormData();
+                            Object.keys(answers).forEach(index => {
+                                submitData.append(`answers[${index}]`, answers[index]);
+                            });
+                            
+                            const response = await fetch(finishUrl, {
+                                method: 'POST',
+                                headers: { 
+                                    'X-CSRF-TOKEN': csrf,
+                                    'Accept': 'application/json',
+                                },
+                                body: submitData,
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (response.ok) {
+                                exitMcExam();
+                                const scoreMsg = result.score !== null && result.score !== undefined 
+                                    ? 'Nilai: ' + parseFloat(result.score).toFixed(2) 
+                                    : 'Menunggu penilaian';
+                                alert('Ujian selesai! ' + scoreMsg);
+                                window.location.reload();
+                            } else {
+                                alert('Terjadi kesalahan saat menyelesaikan ujian.');
+                                finishedOnce = false;
+                            }
+                        } catch (e) {
+                            console.error('Error submitting multiple choice:', e);
+                            alert('Terjadi kesalahan saat menyelesaikan ujian.');
+                            finishedOnce = false;
+                        }
+                    });
+                }
+
                 if (locked) {
                     if (btnStart) { btnStart.disabled = true; btnStart.classList.add('opacity-50','cursor-not-allowed'); }
                     if (btnStartDocx) { btnStartDocx.disabled = true; btnStartDocx.classList.add('opacity-50','cursor-not-allowed'); }

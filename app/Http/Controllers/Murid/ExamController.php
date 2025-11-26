@@ -197,22 +197,50 @@ class ExamController extends Controller
 
         $data = $request->validate([
             'answer_text' => 'nullable|string',
+            'answers' => 'nullable|array',
         ]);
+
+        $updateData = [
+            'answer_text' => $data['answer_text'] ?? $existingResult->answer_text ?? null,
+            'status' => 'finished',
+            'notes' => 'Ujian selesai oleh murid.',
+            'submitted_at' => now(),
+        ];
+
+        // Auto-grading untuk soal pilihan ganda
+        if (!empty($exam->questions_json) && !empty($exam->answer_key_json) && !empty($data['answers'])) {
+            $questions = $exam->questions_json;
+            $answerKey = $exam->answer_key_json;
+            $studentAnswers = $data['answers'];
+            
+            $correct = 0;
+            $total = count($questions);
+            
+            foreach ($questions as $index => $question) {
+                $correctAnswer = $answerKey[$index] ?? null;
+                $studentAnswer = $studentAnswers[$index] ?? null;
+                
+                if ($correctAnswer && $studentAnswer && $correctAnswer === $studentAnswer) {
+                    $correct++;
+                }
+            }
+            
+            $score = $total > 0 ? round(($correct / $total) * 100, 2) : 0;
+            
+            $updateData['answers_json'] = $studentAnswers;
+            $updateData['score'] = $score;
+            $updateData['notes'] = "Ujian selesai. Skor: {$correct}/{$total} ({$score})";
+        }
 
         ExamResult::updateOrCreate(
             [
                 'exam_id' => $exam->id,
                 'student_id' => $murid->id,
             ],
-            [
-                'answer_text' => $data['answer_text'] ?? $existingResult->answer_text ?? null,
-                'status' => 'finished',
-                'notes' => 'Ujian selesai oleh murid.',
-                'submitted_at' => now(),
-            ]
+            $updateData
         );
 
-        return response()->json(['ok' => true, 'message' => 'Ujian berhasil diselesaikan.']);
+        return response()->json(['ok' => true, 'message' => 'Ujian berhasil diselesaikan.', 'score' => $updateData['score'] ?? null]);
     }
 
     /**

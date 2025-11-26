@@ -31,6 +31,14 @@
                             'uts' => (float)($cfg['w_uts'] ?? 30),
                             'uas' => (float)($cfg['w_uas'] ?? 30),
                         ];
+                        // Ambil nilai UAS dari exam_results jika ada
+                        $uasScore = $cfg['uas_score'] ?? null;
+                        if (is_null($uasScore) && isset($examResults[$grade->subject_id])) {
+                            $uasExam = $examResults[$grade->subject_id]->first();
+                            if ($uasExam && !is_null($uasExam->score)) {
+                                $uasScore = $uasExam->score;
+                            }
+                        }
                         // Hitung predikat dari score jika belum ada di notes
                         $predikat = $cfg['predikat'] ?? null;
                         if (is_null($predikat) && !is_null($grade->score)) {
@@ -46,7 +54,7 @@
                         <td class="px-4 py-3 text-emerald-700">{{ $grade->subject?->name ?? '—' }}</td>
                         <td class="px-4 py-3 text-emerald-700">{{ $grade->semester }}</td>
                         <td class="px-4 py-3 text-emerald-700">{{ isset($cfg['uts_score']) ? number_format((float)$cfg['uts_score'], 2) : '—' }}</td>
-                        <td class="px-4 py-3 text-emerald-700">{{ isset($cfg['uas_score']) ? number_format((float)$cfg['uas_score'], 2) : '—' }}</td>
+                        <td class="px-4 py-3 text-emerald-700">{{ !is_null($uasScore) ? number_format((float)$uasScore, 2) : '—' }}</td>
                         <td class="px-4 py-3 text-emerald-700">{{ isset($cfg['tugas_score']) ? number_format((float)$cfg['tugas_score'], 2) : '—' }}</td>
                         <td class="px-4 py-3 text-emerald-700">{{ isset($cfg['praktikum_score']) ? number_format((float)$cfg['praktikum_score'], 2) : '—' }}</td>
                         <td class="px-4 py-3 text-emerald-900 font-semibold">{{ is_null($grade->score) ? '—' : number_format($grade->score, 2) }}</td>

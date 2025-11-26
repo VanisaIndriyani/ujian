@@ -65,6 +65,15 @@ class ExamController extends Controller
             'material_file' => 'nullable|file|mimes:doc,docx,pdf|max:20480',
             'start_at' => 'nullable|date',
             'end_at' => 'nullable|date|after_or_equal:start_at',
+            'enable_multiple_choice' => 'nullable|boolean',
+            'questions' => 'nullable|array',
+            'questions.*.question' => 'required_with:questions|string',
+            'questions.*.options.A' => 'required_with:questions|string',
+            'questions.*.options.B' => 'required_with:questions|string',
+            'questions.*.options.C' => 'required_with:questions|string',
+            'questions.*.options.D' => 'required_with:questions|string',
+            'answer_key' => 'nullable|array',
+            'answer_key.*' => 'required_with:answer_key|in:A,B,C,D',
         ]);
 
         abort_if(!$guru->subjectsTeaching()->where('subjects.id', $data['subject_id'])->exists(), 403);
@@ -75,9 +84,34 @@ class ExamController extends Controller
             $materialPath = $request->file('material_file')->store('exams/materials', 'public');
         }
 
+        // Proses soal pilihan ganda
+        $questionsJson = null;
+        $answerKeyJson = null;
+        if ($request->has('enable_multiple_choice') && $request->has('questions') && !empty($request->input('questions'))) {
+            $questions = [];
+            $answerKey = [];
+            foreach ($request->input('questions') as $index => $question) {
+                if (!empty($question['question']) && !empty($question['options'])) {
+                    $questions[] = [
+                        'question' => $question['question'],
+                        'options' => $question['options'],
+                    ];
+                    if (isset($request->input('answer_key')[$index])) {
+                        $answerKey[] = $request->input('answer_key')[$index];
+                    }
+                }
+            }
+            if (!empty($questions)) {
+                $questionsJson = $questions;
+                $answerKeyJson = $answerKey;
+            }
+        }
+
         Exam::create($data + [
             'creator_id' => $guru->id,
             'material_path' => $materialPath,
+            'questions_json' => $questionsJson,
+            'answer_key_json' => $answerKeyJson,
         ]);
 
         return redirect()->route('guru.exams.index')
@@ -117,6 +151,15 @@ class ExamController extends Controller
             'material_file' => 'nullable|file|mimes:doc,docx,pdf|max:20480',
             'start_at' => 'nullable|date',
             'end_at' => 'nullable|date|after_or_equal:start_at',
+            'enable_multiple_choice' => 'nullable|boolean',
+            'questions' => 'nullable|array',
+            'questions.*.question' => 'required_with:questions|string',
+            'questions.*.options.A' => 'required_with:questions|string',
+            'questions.*.options.B' => 'required_with:questions|string',
+            'questions.*.options.C' => 'required_with:questions|string',
+            'questions.*.options.D' => 'required_with:questions|string',
+            'answer_key' => 'nullable|array',
+            'answer_key.*' => 'required_with:answer_key|in:A,B,C,D',
         ]);
 
         // Jika guru (bukan admin), pastikan subject yang dipilih adalah subject yang diajarkan oleh guru tersebut
@@ -132,8 +175,33 @@ class ExamController extends Controller
             $materialPath = $request->file('material_file')->store('exams/materials', 'public');
         }
 
+        // Proses soal pilihan ganda
+        $questionsJson = null;
+        $answerKeyJson = null;
+        if ($request->has('enable_multiple_choice') && $request->has('questions') && !empty($request->input('questions'))) {
+            $questions = [];
+            $answerKey = [];
+            foreach ($request->input('questions') as $index => $question) {
+                if (!empty($question['question']) && !empty($question['options'])) {
+                    $questions[] = [
+                        'question' => $question['question'],
+                        'options' => $question['options'],
+                    ];
+                    if (isset($request->input('answer_key')[$index])) {
+                        $answerKey[] = $request->input('answer_key')[$index];
+                    }
+                }
+            }
+            if (!empty($questions)) {
+                $questionsJson = $questions;
+                $answerKeyJson = $answerKey;
+            }
+        }
+
         $exam->update($data + [
             'material_path' => $materialPath,
+            'questions_json' => $questionsJson,
+            'answer_key_json' => $answerKeyJson,
         ]);
 
         return redirect()->route('guru.exams.index')
