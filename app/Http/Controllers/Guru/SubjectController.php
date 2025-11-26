@@ -13,8 +13,8 @@ class SubjectController extends Controller
 {
     public function index(): View
     {
-        // Semua guru bisa melihat semua mata kuliah
-        $subjects = Subject::with('guru')
+        // Hanya tampilkan mata kuliah yang diampu oleh guru yang login
+        $subjects = Subject::where('guru_id', Auth::id())
             ->orderBy('name')
             ->paginate(12);
 

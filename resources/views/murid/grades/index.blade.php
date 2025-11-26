@@ -31,6 +31,16 @@
                             'uts' => (float)($cfg['w_uts'] ?? 30),
                             'uas' => (float)($cfg['w_uas'] ?? 30),
                         ];
+                        // Hitung predikat dari score jika belum ada di notes
+                        $predikat = $cfg['predikat'] ?? null;
+                        if (is_null($predikat) && !is_null($grade->score)) {
+                            $score = (float)$grade->score;
+                            if ($score >= 85) $predikat = 'A';
+                            elseif ($score >= 75) $predikat = 'B';
+                            elseif ($score >= 65) $predikat = 'C';
+                            elseif ($score >= 55) $predikat = 'D';
+                            else $predikat = 'E';
+                        }
                     @endphp
                     <tr class="hover:bg-emerald-50/40">
                         <td class="px-4 py-3 text-emerald-700">{{ $grade->subject?->name ?? '—' }}</td>
@@ -40,7 +50,7 @@
                         <td class="px-4 py-3 text-emerald-700">{{ isset($cfg['tugas_score']) ? number_format((float)$cfg['tugas_score'], 2) : '—' }}</td>
                         <td class="px-4 py-3 text-emerald-700">{{ isset($cfg['praktikum_score']) ? number_format((float)$cfg['praktikum_score'], 2) : '—' }}</td>
                         <td class="px-4 py-3 text-emerald-900 font-semibold">{{ is_null($grade->score) ? '—' : number_format($grade->score, 2) }}</td>
-                        <td class="px-4 py-3 text-emerald-700">{{ $cfg['predikat'] ?? '—' }}</td>
+                        <td class="px-4 py-3 text-emerald-700">{{ $predikat ?? '—' }}</td>
                     </tr>
                 @empty
                     <tr>
